@@ -1,0 +1,47 @@
+{
+    "TrainingModule": "AzureDevops with AI",
+    "TrainerName": "Ramakrishna",
+    "ContactNumber": 9513184144,
+    "IsMCT": true,
+    "TopicsCovered": ["Azure DevOps", "AI Integration", "CI/CD Pipelines", "Infrastructure as Code"],
+    "DurationInDays": 60,
+    "address": {
+        "Street": "123 Main St",
+        "City": "Hyderabad",
+        "State": "Telangana",
+        "ZipCode": "500081"
+    },
+
+    "participants": [
+        {
+            "Name": "Sandeep",
+            "location": "Hyderabad",
+            "ContantNumber": 9876543210,
+            "isazureadmin": true
+        },
+        {
+            "Name": "Praveen",
+            "location": "Bangalore",
+            "ContantNumber": 9876543211,
+            "isazureadmin": false
+        },
+        {
+            "Name": "Srinivas",
+            "location": "Hyderabad",
+            "ContantNumber": 9876543212,
+            "isazureadmin": false
+        },
+        {
+            "Name": "Surendra",
+            "location": "Bangalore",
+            "ContantNumber": 9876543213,
+            "isazureadmin": false
+        },
+        {
+            "Name": "Venkatesh",
+            "location": "Hyderabad",
+            "ContantNumber": 9876543214,
+            "isazureadmin": false
+        }
+    ]
+}

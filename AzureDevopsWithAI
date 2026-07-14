@@ -1,0 +1,490 @@
+Azure & AzureDevops with AI
+===========================
+
+Monday - Friday (1hr - 1hr 30min)
+Daily recordings 
+Labs - Message error in the group 
+Documentions - self leaning capability
+Interview questions - 300 + 
+Real time scenarios - 9 + (Cloud, devops, automations + AI)
+Sample resume 
+
+
+Cloud + Azure + AI - 1 month (AWS + GCP)
+
+Azure CLI + Powershell 
+
+AzureDevops:
+
+Azure boards
+Azure Repos
+Azure Pipelines 
+Azure test plans
+Azure Artifacts
+
+Devops:      1 months
+
+IAC - ARMTemplates / Bicep / Terraform 
+SDLC - Agile / Scrum / Azure Boards
+Version control - Git / GitHub / Azure repo
+CI CD - Azure pipelines / GitHub Actions 
+Container - Docker / Kubernets (AKS) / ACR / ACI / HELM / Prometheus 
+
+Azure Open AI - LLM / RAG /  - 2 weeks 
+
+QA:
+==
+
+4vCPU
+1 VM - 1vCPU
+
+
+
+Agenda:
+======
+1. Free trail account
+    - Use incognito window
+    - New Email
+    - New Mobile 
+    - New CC/DC
+
+2. Azure Portal DEMO 
+    - Documentation
+
+3. Azure pricing calculator
+
+    abcd.com --> onprem
+
+    architecture
+        1. server - windows and linux
+        2. sql db 
+        3. storage account 
+        4. loadbalancer
+        5. security 
+
+4. Azure RBAC (Role based access control)
+    - Owner : Assing the RBAC and full access to manage resources
+    - Contributor: Cant assign the RBAC but full access to manage resources
+    - Reader: view only access 
+
+
+Agenda:
+======
+1. Azure Heirarchy
+
+    Microsoft Entra ID Tenent       -- Identity and access management (Azure active directory)
+        \_
+            Management Groups       -- To manage your multilple suscriptions RBAC and polices. RK- Owner
+                \_
+                    Subscriptions 
+                        \_
+                            ResourceGroups1 
+                                \_  
+                                    Resources 
+2. Azure RBAC 
+    RBAC Scopes
+
+3. Azure Tags 
+    Keyvaule pairs 
+    Project: volvo
+    Environment: DEV
+
+    Subscription 
+        \_
+            ResourceGrop1       ResourceGroup2          ResourceGroup
+            Project: volvo      Project: Mercedes       Project: Maruti
+
+
+4. Azure Policies 
+    Enforce organisation standards and governance 
+
+    EastUS - Policy
+    Tags   - Policies 
+
+5. Azure resource locks - to protect your azure resources 
+    - ReadOnly
+    - Delete
+
+6. Azure support 
+
+
+
+
+Agenda:
+======
+IP Address (Internet protocal)
+
+IPv4    - 32 bit         0.0.0.0      255.255.255.255
+IPv6    - 128 bit
+
+
+ClassA      0.0.0.0     127.255.255.255 
+            10.0.0.0 to 10.255.255.255     --> private            
+
+ClassB      128.0.0.0   191.255.255.255
+            172.16.0.0 to 172.31.255.255   --> private
+
+ClassC      192.0.0.0   223.255.255.255
+            192.168.0.0 to 192.168.255.255 --> private
+
+ClassD      224.0.0.0   239.255.255.255
+
+ClassE      240.0.0.0   255.255.255.255
+
+
+CIDR:
+====
+10.0.0.0/16 = 2^32-16 = 2^16 = 65536    (5 reserved IPs) = 65531
+10.0.0.0/24 = 2^32-24 = 2^8. = 256  (5 reserved IPs) = 251
+10.0.0.0/25 = 2^32-25 = 2^7  = 128  (5 reserved IPs) = 123
+10.0.0.0/27 = 2^32-27 = 2^5. = 32   (5 reserved IPs) = 27
+10.0.0.0/29 = 2^32-29 = 2^3  = 8    (5 reserved IPs) = 3
+10.0.0.0/30 = 2^32-30 = 2^2  = 4 
+
+10.0.0.0/29 = 8 IP address (5 reserved IPs)
+
+10.0.0.0    Network address.
+10.0.0.1    Reserved by Azure for the default gateway.
+10.0.0.2    Reserved by Azure to map the Azure DNS IP addresses to the virtual network space.
+10.0.0.3    Reserved by Azure to map the Azure DNS IP addresses to the virtual network space.
+10.0.0.4
+10.0.0.5
+10.0.0.6
+10.0.0.7    Network broadcast address.
+
+Azure Virtual Network (VNET):
+============================
+
+10.0.0.0/16 --> VNET
+
+10.0.0.0/24 = 256
+
+10.0.0.0
+10.0.0.1
+10.0.0.2
+10.0.0.3
+10.0.0.4
+10.0.0.5
+.
+.
+.
+10.0.0.254
+10.0.0.255
+
+
+Azure Virtual Machine (VM):
+==========================
+
+The names of your resources - 
+The location where the resources are stored - 
+The size of the virtual machine - 
+The maximum number of virtual machines that can be created - 
+The operating system that the virtual machine runs - windows/linux
+The configuration of the virtual machine after it starts - 
+The related resources that the virtual machine needs 
+Subscription and required RBAC - Owner/Contributor/Reader
+
+
+Azure windows VM --> webserver (IIS) --> [ClaudAI](https://claude.ai/) application code --> application running
+
+Install webserver:  Install-WindowsFeature -name Web-Server -IncludeManagementTools
+
+
+IIS - Internet information services
+C:/inetpub/wwwroot/html
+
+
+Azure Linux VM:
+==============
+
+Availabilityset: Group two or more VMs in an availability set to ensure that at least one is available during planned or unplanned maintenance events.
+
+Fault domain: 3
+Update domain: 20
+
+Availability zone: zone redundant
+
+100 VM --> 
+snapshot -> new vm -> availability
+
+apache2: /var/www/html
+
+
+Azure Storage Accounts:
+======================
+
+Storage Account types:
+=====================
+1. Standard general-purpose v2     Azure Blob Storage, Azure Queue Storage, Azure Table Storage, and Azure Files
+2. Premium block blobs             Blob Storage (including Data Lake Storage1)
+3. Premium file shares             Azure Files
+4. Premium page blobs              Page blobs only
+
+
+Storage Account service types:
+=============================
+1. Blob - Binary large object
+    - Page blob
+    - Append blob
+    - Block blob
+2. File share
+3. Queues service
+4. Table service
+
+
+Redundency:
+==========
+1. LRS (Locally redundant storage)) - 3 copies
+2. ZRS (Zone-redundant storage) - 3 copies in different AZ
+3. GRS  (Geo-redundant storage) - 6 copies, 3 in primay & 3 in secondary region. no access to secondary region
+4. RA-GRS (Read Access Geo-redundant storage) - 6 copies, 3 in primay & 3 in secondary region. Read access to secondary region
+5. GZRS (Geo-zone-redundant storage) - 6 copies, 3 in primay AZ & 3 in secondary region, no access to secondary region
+6. RA-GZRS (Read Access Geo-zone-redundant storage) - 6 copies, 3 in primay AZ & 3 in secondary region, Read access to secondary region
+
+Storage Account Endpoints:
+=========================
+
+Storage service	                    Endpoint
+===============                     ========
+Blob Storage	                    https://<storage-account>.blob.core.windows.net
+Static website (Blob Storage)	    https://<storage-account>.web.core.windows.net
+Data Lake Storage	                https://<storage-account>.dfs.core.windows.net
+Azure Files	                        https://<storage-account>.file.core.windows.net
+Queue Storage	                    https://<storage-account>.queue.core.windows.net
+Table Storage	                    https://<storage-account>.table.core.windows.net
+
+
+Azure storage access tiers:
+==========================
+Hot tier - 
+An online tier optimized for storing data that is accessed or modified frequently. The hot tier has the highest storage costs, but the lowest access costs.
+
+Cool tier - 
+An online tier optimized for storing data that is infrequently accessed or modified. Data in the cool tier should be stored for a minimum of 30 days. The cool tier has lower storage costs and higher access costs compared to the hot tier.
+
+Cold tier - 
+An online tier optimized for storing data that is rarely accessed or modified, but still requires fast retrieval. Data in the cold tier should be stored for a minimum of 90 days. The cold tier has lower storage costs and higher access costs compared to the cool tier.
+
+Archive tier - 
+An offline tier optimized for storing data that is rarely accessed, and that has flexible latency requirements, on the order of hours. Data in the archive tier should be stored for a minimum of 180 days.
+
+Smart tier - 
+Smart tier automatically moves your data between the hot, cool, and cold access tiers based on usage patterns, optimizing your costs for these access tiers automatically.
+
+
+Azure storage lifecycle management rules:
+========================================
+Rule-based policies that move or delete blobs automatically based on age
+
+
+Access keys: full permissions
+shared access signature (SAS): grants restricted access rights to Azure Storage resources
+
+
+Azure Fileshare:
+===============
+
+SMB - 445 (access the fileshare)
+RDP - 3389 (to login to windows vm)
+SSH - 22 (to logn to linux vm)
+HTTP - 80 (access the webserver)
+HTTPS- 443 (access the website securely)
+
+
+How may ways we can create resources in azure
+
+- Azure Portal 
+- Azure Powershell
+        Login-AzAccount / Connect-AzAccount
+        Logout-AzAccount / Disconnect-AzAccount
+
+        Login-AzAccount -TenantID xxxxxx -SubscriptionID xxxxx
+
+        Get-AzResourceGroup
+
+        New-AzResourceGroup -Name test -Location Eastus
+
+        Remove-AzResourceGroup -Name test -Force
+
+- Azure CLI 
+
+        az login --tenant xxxxxxxxx
+
+        az group list 
+
+        az group create --name test --location eastus
+
+        az group delete -n test -y
+
+IAC
+- ARMTemplates
+- Bicep
+- Terraform 
+
+
+Azure Virtual Network connectivities:
+====================================
+1. Azure VNET Pering - Virtual network peering enables you to seamlessly connect two or more virtual networks in Azure
+
+*** IPs should be overlapped 
+
+    VNET1 = 10.0.0.0/24 = 10.0.0.0 - 10.0.0.255
+    VNET2 = 10.0.0.0/23 = 10.0.0.0 - 10.0.0.255
+                          10.0.1.0 - 10.0.1.255
+
+- Global VNET Peering   (VNET1 - EastUS & VNET2 - WestUS)
+- Regional VNET Peering (VNET1 - EastUS & VNET2 - EastUS)
+
+
+VNET1 - 10.0.0.0 - 10.0.0.255
+VNET2 - 10.0.1.0 - 10.0.1.255
+
+2. Site to Site VPN Connection
+3. ExpressRoute 
+4. Point to Site VPN 
+
+5. Azure Network security group (NSG):
+    Azure network security group to filter network traffic between Azure resources in Azure virtual networks.
+
+    - Subnet
+    - NIC
+
+Azure Keyvault: PAAS
+==============
+    - Secrets
+    - Keys
+    - Certificates
+
+ - RBAC : Key Vault administrator
+ - Access:
+    - RBAC 
+    - Access policy 
+
+ - Keyvault URI
+
+
+Microsoft Entra ID (Formarly Azure active directory):
+====================================================
+
+Active directory - Identity and accemanagement
+
+windows server - ADDS (Active directory domain service) - Active directory admin consol
+
+
+Microsoft Entra ID - Cloud managed Identity and accessmanagement
+
+- SSO 
+- PAM 
+- RBAC
+- SSPR (Self service password reset)
+- MFA (Multi factor authentication)
+- Licencsing
+    Free
+    Premium 1
+    Premium 2
+
+- User management
+- Group management 
+
+App registraion (Service principal):
+===================================
+ClientID: 70a135bc-0566-4ac6-ac43-e27e708aae3c (User)
+Secret: xxxxxxxxxxxxxxxxxxxxxxxxxx (Password)
+
+TenantID: 459865f1-a8aa-450a-baec-8b47a9e5c904
+
+
+az login --service-principal --username xxxxxxxxxxxxxxxxxxxxx --password xxxxxxxxxxxxxxxxxxxxx --tenant xxxxxxxxxxxxxxxxxxxxx
+
+
+
+Azure App services: PAAS
+==================
+
+1. WebApp
+2. Logic Apps
+3. Function Apps
+
+VM -> webserver -> hosting application (IAAS)
+
+Deployment slots:
+    - Blue green deployment strategy
+
+Authentication to App:
+
+Managed Identity: 
+================
+
+A system assigned managed identity is restricted to one per resource and is tied to the lifecycle of this resource. You can grant permissions to the managed identity by using Azure role-based access control (Azure RBAC). The managed identity is authenticated with Microsoft Entra ID, so you don’t have to store any credentials in code.
+
+User assigned managed identities enable Azure resources to authenticate to cloud services (e.g. Azure Key Vault) without storing credentials in code. This type of managed identities are created as standalone Azure resources, and have their own lifecycle. A single resource (e.g. Virtual Machine) can utilize multiple user assigned managed identities. Similarly, a single user assigned managed identity can be shared across multiple resources (e.g. Virtual Machine).
+
+
+az keyvault secret show \
+  --vault-name saanvikitkv \
+  --name vmpassword \
+  --query value \
+  -o tsv
+
+
+Azure Bastion Service:
+=====================
+
+Azure Bastion is a fully managed PaaS service that provides secure and seamless RDP/SSH connectivity to your virtual machines directly over TLS from the Azure portal, or via the native SSH or RDP client already installed on your local computer. 
+
+
+Azure Monitor: 
+
+
+Azure LoadBalancers:
+===================
+1. Azure Loadbalancer
+    Load balancing refers to efficiently distributing incoming network traffic across a group of backend virtual machines (VMs) or virtual machine scale sets (VMSS).
+
+    OSI Layers:
+    ==========
+    1. Pysical 
+    2. Dataliknk
+    3. Network      - Express Route
+    4. Transport    - Azure Loadbalancer
+    5. Session
+    6. Presentation 
+    7. Application  - Application Gateway
+
+    Loadbalancer types:
+    ==================
+    - Public Loadbalancer       - Public ip as frontend ip
+    - Private (Internal) loadbalancer - private ip as frontend ip
+    - BackendPool 
+        - VM
+        - VMSS
+
+
+Autoscaling - VMSS (Virtual Machine scale set)
+
+
+2. Application Gateway
+    - It operates at the OSI layer 7 
+    - Path ased routing
+    - Multisite hosting 
+    - SSL Offloaing (HTTPS -> HTTP)
+    - BackendPool 
+        - VM
+        - VMSS
+        - AppServices 
+        - FQDN or IP address
+    - WAF (web application firewall)
+
+
+3. Traffic Manager 
+
+    Azure Traffic Manager is a DNS-based traffic load balancer that distributes traffic to your public-facing applications across global Azure regions
+
+4. Azure front door
+    Application gateway + Traffic manager 
+
+
+
+
+ARMTemplates (JSON):
+===================

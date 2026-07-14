@@ -1,0 +1,1589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linux for Cloud &amp; DevOps Engineers — Field Reference</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --bg:        #0D1117;
+    --bg-raised: #11161D;
+    --bg-panel:  #151B23;
+    --line:      #21262D;
+    --line-soft: #1B2129;
+    --text:      #E6EDF3;
+    --text-dim:  #8B949E;
+    --text-faint:#5B6573;
+    --green:     #39D88A;
+    --green-dim: #1F6F4A;
+    --amber:     #F0A742;
+    --red:       #F0644A;
+    --blue:      #5B9DF0;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', -apple-system, sans-serif;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* subtle scanline / grid texture on the whole page */
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image:
+      radial-gradient(circle at 15% 8%, rgba(57,216,138,0.05), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(91,157,240,0.04), transparent 40%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  a{color:var(--green); text-decoration:none;}
+
+  code, .mono{font-family:var(--mono);}
+
+  ::selection{background:var(--green-dim); color:#fff;}
+
+  /* ============ SCROLLBAR ============ */
+  ::-webkit-scrollbar{width:10px;}
+  ::-webkit-scrollbar-track{background:var(--bg);}
+  ::-webkit-scrollbar-thumb{background:var(--line); border-radius:0;}
+  ::-webkit-scrollbar-thumb:hover{background:var(--text-faint);}
+
+  /* ============ LAYOUT SHELL ============ */
+  .shell{
+    display:grid;
+    grid-template-columns: 300px 1fr;
+    min-height:100vh;
+    position:relative;
+    z-index:1;
+  }
+
+  /* ============ SIDEBAR (the `tree` nav) ============ */
+  .sidebar{
+    border-right:1px solid var(--line);
+    background:var(--bg-raised);
+    position:sticky;
+    top:0;
+    height:100vh;
+    overflow-y:auto;
+    padding:28px 0 40px;
+  }
+
+  .sidebar-brand{
+    padding:0 24px 20px;
+    border-bottom:1px solid var(--line-soft);
+    margin-bottom:18px;
+  }
+
+  .sidebar-brand .prompt{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--green);
+    margin-bottom:8px;
+  }
+
+  .sidebar-brand h1{
+    font-family:var(--mono);
+    font-size:16px;
+    font-weight:700;
+    color:var(--text);
+    letter-spacing:-0.02em;
+    line-height:1.4;
+  }
+
+  .sidebar-brand .sub{
+    font-size:11px;
+    color:var(--text-faint);
+    margin-top:6px;
+    font-family:var(--mono);
+  }
+
+  .tree-nav{
+    font-family:var(--mono);
+    font-size:13px;
+    padding:0 16px;
+    white-space:nowrap;
+  }
+
+  .tree-nav .branch{color:var(--text-faint); user-select:none;}
+
+  .tree-nav a.node{
+    color:var(--text-dim);
+    display:inline-block;
+    padding:3px 6px;
+    border-radius:3px;
+    transition:background .15s, color .15s;
+  }
+  .tree-nav a.node:hover{color:var(--text); background:var(--bg-panel);}
+  .tree-nav a.node.active{color:var(--green); background:rgba(57,216,138,0.08);}
+
+  .tree-nav .dir-label{
+    color:var(--blue);
+    font-weight:600;
+    padding:2px 6px;
+    display:inline-block;
+  }
+
+  .tree-row{display:flex; align-items:baseline; line-height:1.9;}
+
+  /* ============ MAIN CONTENT ============ */
+  main{
+    min-width:0;
+    padding-bottom:120px;
+  }
+
+  .container{
+    max-width:880px;
+    margin:0 auto;
+    padding:0 48px;
+  }
+
+  /* ---- HERO (terminal boot sequence) ---- */
+  .hero{
+    border-bottom:1px solid var(--line);
+    padding:64px 48px 56px;
+    background:
+      linear-gradient(180deg, rgba(57,216,138,0.03), transparent 60%);
+  }
+
+  .terminal-window{
+    max-width:880px;
+    margin:0 auto;
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius:8px;
+    overflow:hidden;
+    box-shadow:0 20px 60px -20px rgba(0,0,0,0.6);
+  }
+
+  .terminal-titlebar{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:10px 14px;
+    background:var(--bg-raised);
+    border-bottom:1px solid var(--line);
+  }
+
+  .tb-dot{width:11px; height:11px; border-radius:50%;}
+  .tb-dot.r{background:#F0644A;}
+  .tb-dot.y{background:#F0A742;}
+  .tb-dot.g{background:#39D88A;}
+
+  .terminal-titlebar .tb-title{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--text-faint);
+    margin-left:8px;
+  }
+
+  .terminal-body{
+    padding:26px 28px 30px;
+    font-family:var(--mono);
+    font-size:14.5px;
+    min-height:230px;
+  }
+
+  .terminal-body .line{margin-bottom:6px; color:var(--text-dim);}
+  .terminal-body .prompt-sym{color:var(--green); margin-right:8px;}
+  .terminal-body .path{color:var(--blue);}
+  .terminal-body .cmd{color:var(--text);}
+  .terminal-body .ok{color:var(--green);}
+  .terminal-body .comment{color:var(--text-faint);}
+
+  .cursor{
+    display:inline-block;
+    width:8px; height:16px;
+    background:var(--green);
+    margin-left:4px;
+    animation:blink 1s steps(1) infinite;
+    vertical-align:middle;
+  }
+  @keyframes blink{50%{opacity:0;}}
+
+  .hero-tagline{
+    max-width:880px;
+    margin:28px auto 0;
+    color:var(--text-dim);
+    font-size:16px;
+    line-height:1.7;
+  }
+  .hero-tagline strong{color:var(--text); font-weight:600;}
+
+  .hero-meta{
+    display:flex; gap:18px; flex-wrap:wrap;
+    margin-top:20px;
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--text-faint);
+  }
+  .hero-meta span{display:flex; align-items:center; gap:6px;}
+  .hero-meta .dot{width:6px; height:6px; border-radius:50%; background:var(--green);}
+
+  /* ---- SECTION SCAFFOLDING ---- */
+  section.topic{
+    padding:64px 0 8px;
+    border-bottom:1px solid var(--line-soft);
+  }
+  section.topic:last-of-type{border-bottom:none;}
+
+  .topic-head{
+    margin-bottom:28px;
+  }
+
+  .topic-eyebrow{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--green);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:10px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .topic-eyebrow::before{
+    content:"";
+    width:18px; height:1px;
+    background:var(--green);
+    display:inline-block;
+  }
+
+  .topic-head h2{
+    font-family:var(--mono);
+    font-size:28px;
+    font-weight:700;
+    color:var(--text);
+    letter-spacing:-0.02em;
+    margin-bottom:10px;
+  }
+
+  .topic-head .topic-dek{
+    color:var(--text-dim);
+    font-size:15.5px;
+    max-width:680px;
+  }
+
+  .prose{color:var(--text-dim); font-size:15.5px; margin:16px 0;}
+  .prose strong{color:var(--text); font-weight:600;}
+  .prose code{
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    padding:1.5px 6px;
+    border-radius:4px;
+    font-size:13.5px;
+    color:var(--amber);
+  }
+
+  /* ---- CONCEPT GRID CARDS ---- */
+  .concept-grid{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:14px;
+    margin:24px 0;
+  }
+  @media (max-width:680px){.concept-grid{grid-template-columns:1fr;}}
+
+  .concept-card{
+    background:var(--bg-raised);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:18px 20px;
+    transition:border-color .15s, transform .15s;
+  }
+  .concept-card:hover{border-color:var(--green-dim); transform:translateY(-1px);}
+
+  .concept-card .ck-label{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--text-faint);
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    margin-bottom:8px;
+  }
+  .concept-card h3{
+    font-family:var(--mono);
+    font-size:15px;
+    color:var(--text);
+    margin-bottom:8px;
+  }
+  .concept-card p{font-size:13.5px; color:var(--text-dim); line-height:1.6;}
+
+  /* ---- FILESYSTEM TREE DIAGRAM ---- */
+  .fs-tree{
+    background:var(--bg-raised);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:22px 26px;
+    font-family:var(--mono);
+    font-size:13.5px;
+    margin:22px 0;
+    overflow-x:auto;
+  }
+  .fs-tree .fl{display:flex; gap:18px; padding:3px 0; white-space:nowrap;}
+  .fs-tree .fl .p{color:var(--blue); width:120px; flex-shrink:0;}
+  .fs-tree .fl .d{color:var(--text-faint);}
+
+  /* ---- COMMAND CARD (man-page style) ---- */
+  .cmd-card{
+    border:1px solid var(--line);
+    border-radius:8px;
+    margin:18px 0;
+    overflow:hidden;
+    background:var(--bg-raised);
+  }
+
+  .cmd-card-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:14px;
+    padding:14px 20px;
+    background:var(--bg-panel);
+    border-bottom:1px solid var(--line);
+    flex-wrap:wrap;
+  }
+
+  .cmd-name{
+    font-family:var(--mono);
+    font-size:16px;
+    font-weight:700;
+    color:var(--green);
+  }
+  .cmd-name .args{color:var(--text-faint); font-weight:400; font-size:13px; margin-left:8px;}
+
+  .cmd-tag{
+    font-family:var(--mono);
+    font-size:10.5px;
+    color:var(--text-faint);
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    border:1px solid var(--line);
+    padding:3px 8px;
+    border-radius:20px;
+  }
+
+  .cmd-body{padding:18px 20px 20px;}
+
+  .cmd-desc{font-size:14px; color:var(--text-dim); margin-bottom:14px;}
+
+  .cmd-session{
+    background:var(--bg);
+    border:1px solid var(--line-soft);
+    border-radius:6px;
+    padding:14px 16px;
+    font-family:var(--mono);
+    font-size:13px;
+    overflow-x:auto;
+  }
+  .cmd-session .l{margin-bottom:3px; white-space:pre;}
+  .cmd-session .p1{color:var(--green);}
+  .cmd-session .p2{color:var(--blue);}
+  .cmd-session .c{color:var(--text);}
+  .cmd-session .o{color:var(--text-dim);}
+  .cmd-session .cm{color:var(--text-faint);}
+  .cmd-session .hi{color:var(--amber);}
+
+  .flag-table{
+    margin-top:14px;
+    width:100%;
+    border-collapse:collapse;
+    font-size:13px;
+  }
+  .flag-table td{
+    padding:6px 10px 6px 0;
+    border-top:1px solid var(--line-soft);
+    vertical-align:top;
+  }
+  .flag-table td:first-child{
+    font-family:var(--mono);
+    color:var(--amber);
+    white-space:nowrap;
+    width:1%;
+  }
+  .flag-table td:last-child{color:var(--text-dim);}
+
+  /* ---- CALLOUTS ---- */
+  .callout{
+    display:flex;
+    gap:14px;
+    padding:16px 18px;
+    border-radius:8px;
+    margin:20px 0;
+    border:1px solid;
+    font-size:14px;
+  }
+  .callout .ic{font-family:var(--mono); font-weight:700; flex-shrink:0;}
+  .callout.tip{background:rgba(57,216,138,0.06); border-color:var(--green-dim); color:var(--text-dim);}
+  .callout.tip .ic{color:var(--green);}
+  .callout.warn{background:rgba(240,167,66,0.06); border-color:#6B5328; color:var(--text-dim);}
+  .callout.warn .ic{color:var(--amber);}
+  .callout.danger{background:rgba(240,100,74,0.06); border-color:#6B2F25; color:var(--text-dim);}
+  .callout.danger .ic{color:var(--red);}
+  .callout strong{color:var(--text);}
+
+  /* ---- PERMISSIONS / CHMOD VISUAL ---- */
+  .perm-strip{
+    display:flex;
+    font-family:var(--mono);
+    font-size:20px;
+    margin:20px 0 8px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    overflow:hidden;
+  }
+  .perm-seg{
+    flex:1;
+    text-align:center;
+    padding:16px 8px 10px;
+    border-right:1px solid var(--line);
+  }
+  .perm-seg:last-child{border-right:none;}
+  .perm-seg .chars{color:var(--green); letter-spacing:2px;}
+  .perm-seg .num{color:var(--amber); font-size:13px; display:block; margin-top:6px;}
+  .perm-seg .who{
+    font-family:var(--sans);
+    font-size:10.5px;
+    color:var(--text-faint);
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    display:block;
+    margin-top:8px;
+  }
+
+  /* ---- PROCESS TREE ---- */
+  .ptree{
+    font-family:var(--mono);
+    font-size:13.5px;
+    background:var(--bg-raised);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:20px 24px;
+    margin:20px 0;
+    overflow-x:auto;
+  }
+  .ptree .row{padding:3px 0; color:var(--text-dim); white-space:pre;}
+  .ptree .pid{color:var(--blue);}
+  .ptree .nm{color:var(--text);}
+  .ptree .rt{color:var(--green);}
+
+  /* ---- TWO COLUMN COMPARE ---- */
+  .compare{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+    margin:20px 0;
+  }
+  @media (max-width:680px){.compare{grid-template-columns:1fr;}}
+  .compare .col{
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:18px 20px;
+    background:var(--bg-raised);
+  }
+  .compare .col h4{
+    font-family:var(--mono);
+    font-size:13px;
+    color:var(--text);
+    margin-bottom:10px;
+    padding-bottom:10px;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .compare .col ul{list-style:none; font-size:13.5px; color:var(--text-dim);}
+  .compare .col li{padding:5px 0; padding-left:16px; position:relative;}
+  .compare .col li::before{content:"›"; position:absolute; left:0; color:var(--green);}
+
+  /* ---- QUICK REF TABLE ---- */
+  .ref-table{
+    width:100%;
+    border-collapse:collapse;
+    margin:18px 0;
+    font-size:13.5px;
+  }
+  .ref-table th{
+    text-align:left;
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:var(--text-faint);
+    padding:10px 14px;
+    border-bottom:1px solid var(--line);
+    background:var(--bg-raised);
+  }
+  .ref-table td{
+    padding:11px 14px;
+    border-bottom:1px solid var(--line-soft);
+    color:var(--text-dim);
+    vertical-align:top;
+  }
+  .ref-table td:first-child{
+    font-family:var(--mono);
+    color:var(--green);
+    white-space:nowrap;
+  }
+  .ref-table tr:hover td{background:var(--bg-raised);}
+
+  /* ---- CHEATSHEET STRIP AT END ---- */
+  .cheatsheet{
+    background:var(--bg-raised);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:32px;
+    margin:30px 0;
+  }
+  .cheat-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:24px;
+  }
+  @media (max-width:780px){.cheat-grid{grid-template-columns:1fr 1fr;}}
+  @media (max-width:520px){.cheat-grid{grid-template-columns:1fr;}}
+  .cheat-col h5{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--amber);
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    margin-bottom:12px;
+    padding-bottom:8px;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .cheat-col .item{
+    font-family:var(--mono);
+    font-size:12.5px;
+    padding:4px 0;
+    color:var(--text-dim);
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+  }
+  .cheat-col .item b{color:var(--text); font-weight:600;}
+
+  /* ---- FOOTER ---- */
+  footer{
+    border-top:1px solid var(--line);
+    padding:40px 0;
+    text-align:center;
+  }
+  footer .container{display:flex; flex-direction:column; align-items:center; gap:8px;}
+  footer .f-prompt{font-family:var(--mono); font-size:12px; color:var(--green);}
+  footer p{font-size:12.5px; color:var(--text-faint);}
+
+  /* ---- back to top ---- */
+  .totop{
+    position:fixed;
+    bottom:24px; right:24px;
+    width:42px; height:42px;
+    border-radius:50%;
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    color:var(--green);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono);
+    cursor:pointer;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .2s, transform .2s;
+    z-index:50;
+  }
+  .totop.show{opacity:1; pointer-events:auto;}
+  .totop:hover{transform:translateY(-3px); border-color:var(--green-dim);}
+
+  /* ---- mobile sidebar toggle ---- */
+  .menu-toggle{display:none;}
+  @media (max-width:920px){
+    .shell{grid-template-columns:1fr;}
+    .sidebar{
+      position:fixed;
+      left:0; top:0;
+      width:280px;
+      transform:translateX(-100%);
+      transition:transform .25s ease;
+      z-index:100;
+      box-shadow:20px 0 40px rgba(0,0,0,0.4);
+    }
+    .sidebar.open{transform:translateX(0);}
+    .menu-toggle{
+      display:flex;
+      position:fixed;
+      top:16px; left:16px;
+      z-index:101;
+      width:42px; height:42px;
+      background:var(--bg-panel);
+      border:1px solid var(--line);
+      border-radius:8px;
+      align-items:center; justify-content:center;
+      font-family:var(--mono);
+      color:var(--green);
+      cursor:pointer;
+    }
+    .hero{padding-top:90px;}
+    .container{padding:0 22px;}
+    .hero{padding-left:22px; padding-right:22px;}
+    .overlay{
+      display:none;
+      position:fixed; inset:0;
+      background:rgba(0,0,0,0.5);
+      z-index:99;
+    }
+    .overlay.show{display:block;}
+  }
+
+  @media (max-width:560px){
+    .terminal-body{font-size:12.5px;}
+    .topic-head h2{font-size:22px;}
+    .perm-strip{font-size:14px;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .cursor{animation:none;}
+    html{scroll-behavior:auto;}
+  }
+</style>
+</head>
+<body>
+
+<div class="menu-toggle" id="menuToggle">☰</div>
+<div class="overlay" id="overlay"></div>
+
+<div class="shell">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="prompt">root@devops-ref:~$ tree -L 1</div>
+      <h1>linux_for_devops/</h1>
+      <div class="sub">field reference · 14 sections</div>
+    </div>
+    <nav class="tree-nav">
+      <div class="tree-row"><span class="branch">├──</span><span class="dir-label">01_filesystem</span></div>
+      <div class="tree-row"><span class="branch">│&nbsp;&nbsp;&nbsp;</span><a class="node" href="#fhs">fhs-layout.md</a></div>
+      <div class="tree-row"><span class="branch">│&nbsp;&nbsp;&nbsp;</span><a class="node" href="#permissions">permissions.md</a></div>
+      <div class="tree-row"><span class="branch">├──</span><span class="dir-label">02_processes</span></div>
+      <div class="tree-row"><span class="branch">│&nbsp;&nbsp;&nbsp;</span><a class="node" href="#processes">process-mgmt.md</a></div>
+      <div class="tree-row"><span class="branch">│&nbsp;&nbsp;&nbsp;</span><a class="node" href="#systemd">systemd.md</a></div>
+      <div class="tree-row"><span class="branch">├──</span><span class="dir-label">03_navigation</span></div>
+      <div class="tree-row"><span class="branch">│&nbsp;&nbsp;&nbsp;</span><a class="node" href="#nav-files">nav-and-files.md</a></div>
+      <div class="tree-row"><span class="branch">│&nbsp;&nbsp;&nbsp;</span><a class="node" href="#text-tools">text-processing.md</a></div>
+      <div class="tree-row"><span class="branch">├──</span><span class="dir-label">04_system</span></div>
+      <div class="tree-row"><span class="branch">│&nbsp;&nbsp;&nbsp;</span><a class="node" href="#disk-storage">disk-storage.md</a></div>
+      <div class="tree-row"><span class="branch">│&nbsp;&nbsp;&nbsp;</span><a class="node" href="#users-groups">users-groups.md</a></div>
+      <div class="tree-row"><span class="branch">├──</span><span class="dir-label">05_networking</span></div>
+      <div class="tree-row"><span class="branch">│&nbsp;&nbsp;&nbsp;</span><a class="node" href="#networking">net-diagnostics.md</a></div>
+      <div class="tree-row"><span class="branch">│&nbsp;&nbsp;&nbsp;</span><a class="node" href="#iptables">iptables-fw.md</a></div>
+      <div class="tree-row"><span class="branch">├──</span><span class="dir-label">06_containers</span></div>
+      <div class="tree-row"><span class="branch">│&nbsp;&nbsp;&nbsp;</span><a class="node" href="#namespaces">namespaces.md</a></div>
+      <div class="tree-row"><span class="branch">│&nbsp;&nbsp;&nbsp;</span><a class="node" href="#cgroups">cgroups.md</a></div>
+      <div class="tree-row"><span class="branch">├──</span><span class="dir-label">07_observability</span></div>
+      <div class="tree-row"><span class="branch">│&nbsp;&nbsp;&nbsp;</span><a class="node" href="#monitoring">monitoring.md</a></div>
+      <div class="tree-row"><span class="branch">│&nbsp;&nbsp;&nbsp;</span><a class="node" href="#logs">logs-journald.md</a></div>
+      <div class="tree-row"><span class="branch">└──</span><span class="dir-label">08_reference</span></div>
+      <div class="tree-row"><span class="branch">&nbsp;&nbsp;&nbsp;&nbsp;</span><a class="node" href="#cheatsheet">cheatsheet.md</a></div>
+    </nav>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main>
+
+    <!-- ============ HERO ============ -->
+    <section class="hero">
+      <div class="terminal-window">
+        <div class="terminal-titlebar">
+          <div class="tb-dot r"></div><div class="tb-dot y"></div><div class="tb-dot g"></div>
+          <div class="tb-title">bash — devops-engineer@prod-node-03</div>
+        </div>
+        <div class="terminal-body">
+          <div class="line"><span class="prompt-sym">$</span><span class="cmd">whoami</span></div>
+          <div class="line ok">devops-engineer</div>
+          <div class="line"><span class="prompt-sym">$</span><span class="cmd">cat /etc/motd</span></div>
+          <div class="line comment"># Everything you automate, orchestrate, and ship</div>
+          <div class="line comment"># eventually comes down to a Linux kernel underneath it.</div>
+          <div class="line"><span class="prompt-sym">$</span><span class="cmd">man linux-for-cloud-engineers</span></div>
+          <div class="line ok">Loading field reference: filesystem, processes, permissions,</div>
+          <div class="line ok">networking, iptables, cgroups, namespaces, systemd…</div>
+          <div class="line"><span class="prompt-sym">$</span><span class="cmd">echo $READY</span><span class="cursor"></span></div>
+        </div>
+      </div>
+
+      <p class="hero-tagline">
+        <strong>Linux Basics &amp; Essential Commands for Cloud and DevOps Engineers.</strong>
+        Kubernetes schedules processes. Docker isolates them with namespaces and cgroups. Terraform provisions
+        the VM whose kernel does all the real work. This reference covers the Linux underneath your entire
+        toolchain — the filesystem, permissions model, process lifecycle, networking stack, and the commands
+        you'll actually run at 2am when something's on fire.
+      </p>
+
+      <div class="hero-meta">
+        <span><i class="dot"></i> 8 modules</span>
+        <span><i class="dot"></i> 60+ commands</span>
+        <span><i class="dot"></i> interview-ready</span>
+        <span><i class="dot"></i> copy-paste safe</span>
+      </div>
+    </section>
+
+    <div class="container">
+
+      <!-- ============ 01 — FHS ============ -->
+      <section class="topic" id="fhs">
+        <div class="topic-head">
+          <div class="topic-eyebrow">01 · Filesystem</div>
+          <h2>The Filesystem Hierarchy Standard</h2>
+          <p class="topic-dek">Everything in Linux is a file — sockets, devices, processes, even kernel parameters. Knowing where things live is the difference between debugging in 10 seconds and 10 minutes.</p>
+        </div>
+
+        <div class="fs-tree">
+          <div class="fl"><span class="p">/etc</span><span class="d">— system-wide config files (nginx.conf, hosts, fstab, systemd units)</span></div>
+          <div class="fl"><span class="p">/var</span><span class="d">— variable data: logs (/var/log), caches, container state</span></div>
+          <div class="fl"><span class="p">/opt</span><span class="d">— third-party / vendor software (Docker Desktop, JDK, custom agents)</span></div>
+          <div class="fl"><span class="p">/usr</span><span class="d">— user-land binaries and libraries (/usr/bin, /usr/lib)</span></div>
+          <div class="fl"><span class="p">/bin,/sbin</span><span class="d">— essential binaries needed before /usr is mounted (now often symlinked into /usr)</span></div>
+          <div class="fl"><span class="p">/proc</span><span class="d">— virtual filesystem exposing kernel &amp; process info in real time, not on disk</span></div>
+          <div class="fl"><span class="p">/sys</span><span class="d">— virtual filesystem exposing kernel objects, devices, and cgroups</span></div>
+          <div class="fl"><span class="p">/home</span><span class="d">— per-user personal directories</span></div>
+          <div class="fl"><span class="p">/tmp</span><span class="d">— temporary files, usually cleared on reboot</span></div>
+          <div class="fl"><span class="p">/dev</span><span class="d">— device files (disks, terminals, /dev/null, /dev/random)</span></div>
+          <div class="fl"><span class="p">/root</span><span class="d">— home directory for the root user</span></div>
+        </div>
+
+        <div class="callout tip">
+          <span class="ic">WHY IT MATTERS →</span>
+          <span><strong>/proc</strong> and <strong>/sys</strong> aren't real disk files — they're windows into the running kernel. <code>cat /proc/cpuinfo</code>, <code>cat /proc/meminfo</code>, and <code>ls /sys/fs/cgroup</code> are how tools like <code>docker stats</code> and Kubernetes' kubelet actually get their metrics. There's no API call happening — it's a file read.</span>
+        </div>
+
+        <div class="concept-grid">
+          <div class="concept-card">
+            <div class="ck-label">Config vs Runtime</div>
+            <h3>/etc vs /var</h3>
+            <p>/etc holds the config you wrote and version-control. /var holds what the system generates while running — and what fills up your disk at 3am.</p>
+          </div>
+          <div class="concept-card">
+            <div class="ck-label">Disk vs Virtual</div>
+            <h3>/proc and /sys aren't disk</h3>
+            <p>They consume zero disk space and reset on reboot. df won't show real usage for them — they're generated on read.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PERMISSIONS ============ -->
+      <section class="topic" id="permissions">
+        <div class="topic-head">
+          <div class="topic-eyebrow">01 · Filesystem</div>
+          <h2>Permissions &amp; Ownership</h2>
+          <p class="topic-dek">Every file has an owner, a group, and three permission triads. Get this wrong on a Dockerfile <code>COPY</code> or a Kubernetes <code>volumeMount</code> and you'll spend an hour staring at "Permission denied."</p>
+        </div>
+
+        <div class="perm-strip">
+          <div class="perm-seg">
+            <span class="chars">rwx</span>
+            <span class="num">7</span>
+            <span class="who">owner</span>
+          </div>
+          <div class="perm-seg">
+            <span class="chars">r-x</span>
+            <span class="num">5</span>
+            <span class="who">group</span>
+          </div>
+          <div class="perm-seg">
+            <span class="chars">r--</span>
+            <span class="num">4</span>
+            <span class="who">others</span>
+          </div>
+        </div>
+        <p class="prose" style="text-align:center; font-family:var(--mono); color:var(--text-faint); font-size:13px;">
+          -rwxr-xr-- &nbsp;→&nbsp; chmod 754 file.sh
+        </p>
+
+        <div class="prose">
+          <strong>Read (r=4)</strong> lets you view file contents or list a directory. <strong>Write (w=2)</strong> lets you
+          modify a file or add/remove entries in a directory. <strong>Execute (x=1)</strong> runs a file as a program, or
+          lets you <code>cd</code> into a directory. Add the numbers per triad to get the chmod digit.
+        </div>
+
+        <div class="cmd-card">
+          <div class="cmd-card-head">
+            <div><span class="cmd-name">chmod</span><span class="args">[mode] [file]</span></div>
+            <span class="cmd-tag">permissions</span>
+          </div>
+          <div class="cmd-body">
+            <p class="cmd-desc">Change file mode bits. Use octal for absolute sets, or symbolic for relative tweaks.</p>
+            <div class="cmd-session">
+<div class="l"><span class="p1">$</span> <span class="c">chmod 644 deploy.yaml</span></div>
+<div class="l o"># owner: rw-, group: r--, others: r-- — standard config file</div>
+<div class="l"><span class="p1">$</span> <span class="c">chmod 755 entrypoint.sh</span></div>
+<div class="l o"># owner: rwx, group: r-x, others: r-x — executable script</div>
+<div class="l"><span class="p1">$</span> <span class="c">chmod +x ./deploy.sh</span></div>
+<div class="l o"># add execute bit for all, keep everything else unchanged</div>
+<div class="l"><span class="p1">$</span> <span class="c">chmod -R 750 /opt/app</span></div>
+<div class="l o"># recursive: apply to directory and everything inside it</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cmd-card">
+          <div class="cmd-card-head">
+            <div><span class="cmd-name">chown</span><span class="args">[user]:[group] [file]</span></div>
+            <span class="cmd-tag">ownership</span>
+          </div>
+          <div class="cmd-body">
+            <p class="cmd-desc">Change file owner and/or group. The classic fix for container volume permission mismatches.</p>
+            <div class="cmd-session">
+<div class="l"><span class="p1">$</span> <span class="c">chown www-data:www-data /var/www/html -R</span></div>
+<div class="l o"># nginx worker process needs to own the files it serves</div>
+<div class="l"><span class="p1">$</span> <span class="c">chown 1000:1000 /data</span></div>
+<div class="l o"># match container's non-root UID:GID to a mounted host volume</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout warn">
+          <span class="ic">DEVOPS GOTCHA →</span>
+          <span>A bind-mounted volume keeps the <strong>host's</strong> UID/GID. If your container runs as UID 1000 but the host directory is owned by UID 1001, you get permission denied even though both "look like" the right user. Always check with <code>ls -n</code> to see raw UIDs, not names.</span>
+        </div>
+
+        <table class="flag-table">
+          <tr><td>umask</td><td>Default permission mask subtracted from new files (022 → new files get 644, dirs get 755)</td></tr>
+          <tr><td>setuid (4000)</td><td>Run binary as the file owner, not the invoking user — e.g. /usr/bin/passwd</td></tr>
+          <tr><td>setgid (2000)</td><td>New files in a directory inherit the directory's group — useful for shared team dirs</td></tr>
+          <tr><td>sticky bit (1000)</td><td>Only the file owner can delete their own files in a shared dir — e.g. /tmp</td></tr>
+        </table>
+      </section>
+
+      <!-- ============ PROCESSES ============ -->
+      <section class="topic" id="processes">
+        <div class="topic-head">
+          <div class="topic-eyebrow">02 · Processes</div>
+          <h2>Process Management</h2>
+          <p class="topic-dek">Every container is a process tree. Understanding PIDs, signals, and how a parent reaps a child is what's actually happening inside <code>docker stop</code> and a Kubernetes pod eviction.</p>
+        </div>
+
+        <div class="ptree">
+<div class="row"><span class="pid">PID 1</span>  <span class="nm">systemd</span> <span class="rt">(init — parent of everything)</span></div>
+<div class="row">  └─ <span class="pid">PID 842</span>  <span class="nm">containerd-shim</span></div>
+<div class="row">       └─ <span class="pid">PID 851</span>  <span class="nm">nginx: master process</span></div>
+<div class="row">            ├─ <span class="pid">PID 852</span>  <span class="nm">nginx: worker process</span></div>
+<div class="row">            └─ <span class="pid">PID 853</span>  <span class="nm">nginx: worker process</span></div>
+        </div>
+
+        <div class="prose">
+          PID 1 is special: it's the first process the kernel starts and the ultimate parent of every other process.
+          If a process's parent dies before it does, PID 1 "adopts" it — this is why a misconfigured container
+          <strong>entrypoint</strong> that isn't PID-1-aware can leave zombie processes accumulating.
+        </div>
+
+        <div class="cmd-card">
+          <div class="cmd-card-head">
+            <div><span class="cmd-name">ps</span><span class="args">aux / ps -ef</span></div>
+            <span class="cmd-tag">inspect</span>
+          </div>
+          <div class="cmd-body">
+            <p class="cmd-desc">Snapshot of running processes. <code>aux</code> is BSD style, <code>-ef</code> is UNIX style — both are everywhere, pick one and learn its columns.</p>
+            <div class="cmd-session">
+<div class="l"><span class="p1">$</span> <span class="c">ps aux | grep nginx</span></div>
+<div class="l o">root   851  0.0  0.1  55  nginx: master process</div>
+<div class="l o">www    852  0.1  0.4 102  nginx: worker process</div>
+<div class="l"><span class="p1">$</span> <span class="c">ps -ef --forest</span></div>
+<div class="l o"># --forest renders the actual parent/child tree visually</div>
+            </div>
+            <table class="flag-table">
+              <tr><td>%CPU / %MEM</td><td>Share of CPU time and resident memory the process is using right now</td></tr>
+              <tr><td>STAT</td><td>S=sleeping, R=running, Z=zombie, D=uninterruptible sleep (often disk I/O wait)</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="cmd-card">
+          <div class="cmd-card-head">
+            <div><span class="cmd-name">top</span> / <span class="cmd-name">htop</span></div>
+            <span class="cmd-tag">live monitor</span>
+          </div>
+          <div class="cmd-body">
+            <p class="cmd-desc">Real-time, continuously refreshing view of CPU, memory, and per-process load. <code>htop</code> is the friendlier, color-coded upgrade — install it, don't fight plain <code>top</code>.</p>
+          </div>
+        </div>
+
+        <div class="cmd-card">
+          <div class="cmd-card-head">
+            <div><span class="cmd-name">kill</span> / <span class="cmd-name">pkill</span></div>
+            <span class="cmd-tag">signals</span>
+          </div>
+          <div class="cmd-body">
+            <p class="cmd-desc"><code>kill</code> doesn't forcibly destroy a process by default — it <em>sends a signal</em>, and the process decides how to react. This single fact explains why <code>docker stop</code> can hang and then suddenly succeed.</p>
+            <div class="cmd-session">
+<div class="l"><span class="p1">$</span> <span class="c">kill -15 4521</span></div>
+<div class="l o"># SIGTERM — "please shut down gracefully." App can catch this and clean up.</div>
+<div class="l"><span class="p1">$</span> <span class="c">kill -9 4521</span></div>
+<div class="l o"><span class="hi"># SIGKILL — immediate, uncatchable termination. Last resort. No cleanup runs.</span></div>
+<div class="l"><span class="p1">$</span> <span class="c">pkill -f "node server.js"</span></div>
+<div class="l o"># kill by matching the full command line instead of a PID</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout danger">
+          <span class="ic">WHY IT MATTERS →</span>
+          <span><code>docker stop</code> sends <strong>SIGTERM</strong>, waits a grace period (default 10s), then sends <strong>SIGKILL</strong> if the process hasn't exited. The same pattern is true of <code>kubectl delete pod</code> and its <code>terminationGracePeriodSeconds</code>. If your app doesn't handle SIGTERM, every rolling deploy is a small forced kill.</span>
+        </div>
+
+        <div class="compare">
+          <div class="col">
+            <h4>foreground vs background</h4>
+            <ul>
+              <li><code>command &amp;</code> — run in background, keep shell free</li>
+              <li><code>jobs</code> — list background jobs in this shell</li>
+              <li><code>fg %1</code> / <code>bg %1</code> — bring job to fore/background</li>
+              <li><code>nohup cmd &amp;</code> — survive shell logout</li>
+            </ul>
+          </div>
+          <div class="col">
+            <h4>nice &amp; renice</h4>
+            <ul>
+              <li><code>nice -n 10 cmd</code> — start with lower CPU priority</li>
+              <li><code>renice -n -5 -p 4521</code> — raise priority of running process</li>
+              <li>Range: -20 (highest priority) to 19 (lowest)</li>
+              <li>Only root can set negative niceness</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ SYSTEMD ============ -->
+      <section class="topic" id="systemd">
+        <div class="topic-head">
+          <div class="topic-eyebrow">02 · Processes</div>
+          <h2>systemd &amp; Service Management</h2>
+          <p class="topic-dek">systemd is PID 1 on virtually every modern distro. It starts your services, restarts them on crash, and is the reason a misbehaving app doesn't take the whole VM down.</p>
+        </div>
+
+        <div class="cmd-card">
+          <div class="cmd-card-head">
+            <div><span class="cmd-name">systemctl</span></div>
+            <span class="cmd-tag">service control</span>
+          </div>
+          <div class="cmd-body">
+            <div class="cmd-session">
+<div class="l"><span class="p1">$</span> <span class="c">systemctl status docker</span></div>
+<div class="l o">● docker.service — active (running) since Mon 09:14:02</div>
+<div class="l"><span class="p1">$</span> <span class="c">systemctl restart nginx</span></div>
+<div class="l"><span class="p1">$</span> <span class="c">systemctl enable kubelet</span></div>
+<div class="l o"># symlinks the unit so it starts automatically on boot</div>
+<div class="l"><span class="p1">$</span> <span class="c">systemctl daemon-reload</span></div>
+<div class="l o"># re-read unit files after you edit a .service file by hand</div>
+            </div>
+          </div>
+        </div>
+
+        <table class="ref-table">
+          <tr><th>command</th><th>does</th></tr>
+          <tr><td>systemctl start/stop NAME</td><td>Start or stop a service right now (no boot-time effect)</td></tr>
+          <tr><td>systemctl enable/disable NAME</td><td>Toggle whether it auto-starts at boot</td></tr>
+          <tr><td>systemctl is-active NAME</td><td>Quick boolean check — perfect for health-check scripts</td></tr>
+          <tr><td>journalctl -u NAME -f</td><td>Tail live logs for a specific unit</td></tr>
+          <tr><td>systemctl list-units --failed</td><td>Show every unit that failed to start — first stop after a bad boot</td></tr>
+        </table>
+
+        <div class="callout tip">
+          <span class="ic">INTERVIEW ANGLE →</span>
+          <span>"Why does Docker need systemd on the host but not inside the container?" Because the <strong>host</strong> needs an init system to supervise the dockerd daemon and restart it on crash; the container itself usually runs a single foreground process as PID 1, with no init system needed unless you're running multiple processes (in which case tools like <code>tini</code> or <code>s6-overlay</code> fill that role).</span>
+        </div>
+      </section>
+
+      <!-- ============ NAV & FILES ============ -->
+      <section class="topic" id="nav-files">
+        <div class="topic-head">
+          <div class="topic-eyebrow">03 · Navigation</div>
+          <h2>Navigation &amp; File Operations</h2>
+          <p class="topic-dek">The muscle-memory commands. Fast, boring, used a hundred times a day inside SSH sessions and CI scripts.</p>
+        </div>
+
+        <table class="ref-table">
+          <tr><th>command</th><th>does</th></tr>
+          <tr><td>pwd</td><td>Print current working directory — first thing to run in any unfamiliar shell</td></tr>
+          <tr><td>cd -</td><td>Jump back to the previous directory you were in</td></tr>
+          <tr><td>ls -lah</td><td>Long format, all files including hidden, human-readable sizes</td></tr>
+          <tr><td>find /var/log -name "*.log" -mtime -1</td><td>Find files modified in the last day — classic log-rotation debugging</td></tr>
+          <tr><td>find / -size +500M</td><td>Hunt for what's eating disk space</td></tr>
+          <tr><td>cp -r src/ dest/</td><td>Copy directories recursively</td></tr>
+          <tr><td>rsync -avz src/ user@host:dest/</td><td>Sync files over SSH; only transfers diffs, preserves permissions</td></tr>
+          <tr><td>mkdir -p a/b/c</td><td>Create nested directories in one shot, no error if they exist</td></tr>
+          <tr><td>ln -s /opt/app/current /opt/app/live</td><td>Symlink — the trick behind zero-downtime "current release" deploys</td></tr>
+          <tr><td>tar -czvf app.tar.gz ./app</td><td>Compress a directory into a gzipped tarball</td></tr>
+          <tr><td>tar -xzvf app.tar.gz</td><td>Extract it back out</td></tr>
+        </table>
+
+        <div class="callout tip">
+          <span class="ic">PATTERN →</span>
+          <span>The symlink swap (<code>ln -sfn new_release current && systemctl reload app</code>) is the core mechanism behind blue-green and Capistrano-style deploys — atomically repoint a symlink instead of replacing files in place.</span>
+        </div>
+      </section>
+
+      <!-- ============ TEXT PROCESSING ============ -->
+      <section class="topic" id="text-tools">
+        <div class="topic-head">
+          <div class="topic-eyebrow">03 · Navigation</div>
+          <h2>Text Processing &amp; Pipes</h2>
+          <p class="topic-dek">Logs are text. Configs are text. The Linux philosophy is small tools, chained with pipes — this is the actual skill tested in most "debug this log" interview rounds.</p>
+        </div>
+
+        <div class="cmd-card">
+          <div class="cmd-card-head">
+            <div><span class="cmd-name">grep</span></div>
+            <span class="cmd-tag">search</span>
+          </div>
+          <div class="cmd-body">
+            <div class="cmd-session">
+<div class="l"><span class="p1">$</span> <span class="c">grep -i "error" app.log</span></div>
+<div class="l o"># case-insensitive match</div>
+<div class="l"><span class="p1">$</span> <span class="c">grep -rn "TODO" ./src</span></div>
+<div class="l o"># recursive, with line numbers</div>
+<div class="l"><span class="p1">$</span> <span class="c">grep -v "DEBUG" app.log | grep -c "ERROR"</span></div>
+<div class="l o"># exclude debug lines, then count remaining error lines</div>
+<div class="l"><span class="p1">$</span> <span class="c">grep -B2 -A5 "OOMKilled" syslog</span></div>
+<div class="l o"># show 2 lines before and 5 lines after each match for context</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cmd-card">
+          <div class="cmd-card-head">
+            <div><span class="cmd-name">awk</span> / <span class="cmd-name">sed</span></div>
+            <span class="cmd-tag">transform</span>
+          </div>
+          <div class="cmd-body">
+            <p class="cmd-desc"><strong>awk</strong> thinks in columns. <strong>sed</strong> thinks in find-and-replace, line by line.</p>
+            <div class="cmd-session">
+<div class="l"><span class="p1">$</span> <span class="c">awk '{print $1, $9}' access.log</span></div>
+<div class="l o"># print column 1 (IP) and column 9 (status code) — nginx log format</div>
+<div class="l"><span class="p1">$</span> <span class="c">awk -F: '{print $1}' /etc/passwd</span></div>
+<div class="l o"># custom field separator: list usernames</div>
+<div class="l"><span class="p1">$</span> <span class="c">sed -i 's/staging/production/g' config.yaml</span></div>
+<div class="l o"># in-place find-and-replace across the whole file</div>
+<div class="l"><span class="p1">$</span> <span class="c">sed -n '10,20p' file.txt</span></div>
+<div class="l o"># print only lines 10 through 20</div>
+            </div>
+          </div>
+        </div>
+
+        <table class="ref-table">
+          <tr><th>command</th><th>does</th></tr>
+          <tr><td>cat file | tail -f -n 100</td><td>Follow a log file live, starting from the last 100 lines</td></tr>
+          <tr><td>wc -l file</td><td>Count lines — fast sanity check on log volume</td></tr>
+          <tr><td>sort file.txt | uniq -c | sort -rn</td><td>Classic frequency count: most common lines first</td></tr>
+          <tr><td>cut -d',' -f2,4 data.csv</td><td>Extract specific columns by delimiter</td></tr>
+          <tr><td>xargs</td><td>Build and run commands from piped input — e.g. <code>find . -name "*.tmp" | xargs rm</code></td></tr>
+          <tr><td>jq '.status' response.json</td><td>Parse and query JSON — essential for API/CLI output in pipelines</td></tr>
+        </table>
+      </section>
+
+      <!-- ============ DISK & STORAGE ============ -->
+      <section class="topic" id="disk-storage">
+        <div class="topic-head">
+          <div class="topic-eyebrow">04 · System</div>
+          <h2>Disk &amp; Storage</h2>
+          <p class="topic-dek">"The disk is full" is one of the most common production incidents — and almost always caused by logs, container layers, or orphaned volumes nobody cleaned up.</p>
+        </div>
+
+        <div class="cmd-card">
+          <div class="cmd-card-head">
+            <div><span class="cmd-name">df</span> -h</div>
+            <span class="cmd-tag">disk usage</span>
+          </div>
+          <div class="cmd-body">
+            <p class="cmd-desc">Filesystem-level usage. The first command when a node reports disk pressure.</p>
+            <div class="cmd-session">
+<div class="l"><span class="p1">$</span> <span class="c">df -h</span></div>
+<div class="l o">Filesystem  Size  Used  Avail  Use%  Mounted on</div>
+<div class="l o">/dev/sda1    50G   46G    4G    92%   /</div>
+<div class="l o"><span class="hi">overlay      50G   46G    4G    92%   /var/lib/docker</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cmd-card">
+          <div class="cmd-card-head">
+            <div><span class="cmd-name">du</span> -sh */</div>
+            <span class="cmd-tag">directory usage</span>
+          </div>
+          <div class="cmd-body">
+            <p class="cmd-desc">Drill down to find <em>which directory</em> is actually consuming the space df reported.</p>
+            <div class="cmd-session">
+<div class="l"><span class="p1">$</span> <span class="c">du -sh /var/log/* | sort -rh | head -10</span></div>
+<div class="l o"># top 10 largest items under /var/log, biggest first</div>
+<div class="l"><span class="p1">$</span> <span class="c">docker system df</span></div>
+<div class="l o"># Docker's own breakdown: images, containers, volumes, build cache</div>
+<div class="l"><span class="p1">$</span> <span class="c">docker system prune -a --volumes</span></div>
+<div class="l o"># reclaim space — removes unused images, networks, and volumes</div>
+            </div>
+          </div>
+        </div>
+
+        <table class="ref-table">
+          <tr><th>command</th><th>does</th></tr>
+          <tr><td>lsblk</td><td>List block devices in a tree — disks, partitions, mounted filesystems</td></tr>
+          <tr><td>mount / umount</td><td>Attach or detach a filesystem to a directory path</td></tr>
+          <tr><td>fdisk -l</td><td>List partition tables on all disks (needs sudo)</td></tr>
+          <tr><td>mkfs.ext4 /dev/sdb1</td><td>Format a partition with the ext4 filesystem</td></tr>
+          <tr><td>fstrim -av</td><td>Tell SSDs to reclaim unused blocks — common on cloud-attached volumes</td></tr>
+          <tr><td>cat /etc/fstab</td><td>Mounts that should persist across reboot</td></tr>
+        </table>
+
+        <div class="callout warn">
+          <span class="ic">DEVOPS GOTCHA →</span>
+          <span>A deleted file doesn't free space if a process still has it <strong>open</strong>. <code>lsof | grep deleted</code> finds these phantom file handles — classic cause of "I deleted the logs but df still shows full disk."</span>
+        </div>
+      </section>
+
+      <!-- ============ USERS & GROUPS ============ -->
+      <section class="topic" id="users-groups">
+        <div class="topic-head">
+          <div class="topic-eyebrow">04 · System</div>
+          <h2>Users, Groups &amp; sudo</h2>
+          <p class="topic-dek">Least-privilege access starts here — and it's exactly what container security scanners flag when an image runs as root unnecessarily.</p>
+        </div>
+
+        <table class="ref-table">
+          <tr><th>command</th><th>does</th></tr>
+          <tr><td>useradd -m -s /bin/bash deploy</td><td>Create a user with a home directory and bash as the default shell</td></tr>
+          <tr><td>usermod -aG docker deploy</td><td>Add an existing user to a group (-a appends, doesn't overwrite existing groups)</td></tr>
+          <tr><td>passwd deploy</td><td>Set or change a user's password</td></tr>
+          <tr><td>id deploy</td><td>Show UID, GID, and all group memberships for a user</td></tr>
+          <tr><td>su - deploy</td><td>Switch user, loading their full login environment</td></tr>
+          <tr><td>sudo -l</td><td>List what the current user is permitted to run as root</td></tr>
+          <tr><td>visudo</td><td>Safely edit /etc/sudoers with syntax checking before saving</td></tr>
+          <tr><td>whoami / who / w</td><td>Current user / logged-in users / logged-in users + what they're doing</td></tr>
+        </table>
+
+        <div class="callout tip">
+          <span class="ic">INTERVIEW ANGLE →</span>
+          <span>"Why shouldn't a Dockerfile run as root?" If an attacker breaks out of the app process, root inside the container often maps to dangerous host capabilities, especially with privileged mode or shared namespaces. The fix: <code>USER appuser</code> in the Dockerfile plus a matching non-root UID, the same principle as <code>usermod -aG</code> instead of handing out root.</span>
+        </div>
+      </section>
+
+      <!-- ============ NETWORKING ============ -->
+      <section class="topic" id="networking">
+        <div class="topic-head">
+          <div class="topic-eyebrow">05 · Networking</div>
+          <h2>Network Diagnostics</h2>
+          <p class="topic-dek">"It works locally but not in the cluster" is a networking problem nine times out of ten. These commands narrow down which layer is actually broken.</p>
+        </div>
+
+        <div class="cmd-card">
+          <div class="cmd-card-head">
+            <div><span class="cmd-name">ip a</span> / <span class="cmd-name">ip route</span></div>
+            <span class="cmd-tag">interfaces</span>
+          </div>
+          <div class="cmd-body">
+            <p class="cmd-desc">The modern replacement for <code>ifconfig</code> and <code>route</code>. Shows interfaces, IPs, and routing table.</p>
+            <div class="cmd-session">
+<div class="l"><span class="p1">$</span> <span class="c">ip a show eth0</span></div>
+<div class="l o">inet 10.0.4.12/24 scope global eth0</div>
+<div class="l"><span class="p1">$</span> <span class="c">ip route</span></div>
+<div class="l o">default via 10.0.4.1 dev eth0</div>
+            </div>
+          </div>
+        </div>
+
+        <table class="ref-table">
+          <tr><th>command</th><th>does</th></tr>
+          <tr><td>ping -c 4 host</td><td>Layer 3 reachability check — is the host even alive?</td></tr>
+          <tr><td>curl -v https://api.internal/health</td><td>Layer 7 check — full request/response with headers, TLS handshake details</td></tr>
+          <tr><td>curl -o /dev/null -s -w "%{http_code}\n" url</td><td>Print only the HTTP status code — perfect for health-check scripts</td></tr>
+          <tr><td>telnet host 443 / nc -zv host 443</td><td>Raw TCP port check — is something even listening, regardless of protocol?</td></tr>
+          <tr><td>traceroute host</td><td>Show every network hop between you and the destination</td></tr>
+          <tr><td>dig domain.com / nslookup domain.com</td><td>DNS resolution — first suspect when "it can't find the host"</td></tr>
+          <tr><td>ss -tulnp</td><td>List listening ports and the process bound to each (modern netstat)</td></tr>
+          <tr><td>mtr host</td><td>Combines ping + traceroute as a live, continuously updating view</td></tr>
+        </table>
+
+        <div class="callout tip">
+          <span class="ic">DEBUGGING LADDER →</span>
+          <span>When a service is unreachable, check in order: <strong>1)</strong> <code>ping</code> — is the host up? <strong>2)</strong> <code>nc -zv host port</code> — is the port open? <strong>3)</strong> <code>curl -v</code> — does the app actually respond? Each layer rules out a different failure class before you go chasing application code.</span>
+        </div>
+      </section>
+
+      <!-- ============ IPTABLES ============ -->
+      <section class="topic" id="iptables">
+        <div class="topic-head">
+          <div class="topic-eyebrow">05 · Networking</div>
+          <h2>iptables &amp; Packet Filtering</h2>
+          <p class="topic-dek">Docker and Kubernetes both manipulate iptables rules behind the scenes to implement container networking and Service routing. Understanding the chains demystifies a lot of "magic."</p>
+        </div>
+
+        <div class="prose">
+          Packets pass through ordered <strong>chains</strong>. The three built-in chains in the <code>filter</code> table:
+          <strong>INPUT</strong> (traffic destined for this host), <strong>OUTPUT</strong> (traffic leaving this host), and
+          <strong>FORWARD</strong> (traffic passing through this host to somewhere else — exactly what container bridge
+          networking relies on).
+        </div>
+
+        <div class="cmd-card">
+          <div class="cmd-card-head">
+            <div><span class="cmd-name">iptables</span></div>
+            <span class="cmd-tag">firewall</span>
+          </div>
+          <div class="cmd-body">
+            <div class="cmd-session">
+<div class="l"><span class="p1">$</span> <span class="c">iptables -L -n -v</span></div>
+<div class="l o"># list all rules in the filter table, numeric, with packet counters</div>
+<div class="l"><span class="p1">$</span> <span class="c">iptables -A INPUT -p tcp --dport 22 -j ACCEPT</span></div>
+<div class="l o"># Append rule: allow inbound SSH</div>
+<div class="l"><span class="p1">$</span> <span class="c">iptables -A INPUT -p tcp --dport 8080 -s 10.0.0.0/8 -j ACCEPT</span></div>
+<div class="l o"># allow port 8080 only from the internal 10.0.0.0/8 range</div>
+<div class="l"><span class="p1">$</span> <span class="c">iptables -P INPUT DROP</span></div>
+<div class="l o"><span class="hi"># set default policy to DROP — deny-by-default, only explicit ACCEPTs pass</span></div>
+<div class="l"><span class="p1">$</span> <span class="c">iptables -t nat -L -n</span></div>
+<div class="l o"># inspect the NAT table — this is where Docker publishes container ports</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout tip">
+          <span class="ic">WHY IT MATTERS →</span>
+          <span>When you run <code>docker run -p 8080:80</code>, Docker isn't doing anything exotic — it inserts a <strong>DNAT rule</strong> into iptables' nat table that rewrites packets headed to host port 8080 toward the container's internal IP on port 80. <code>iptables -t nat -L DOCKER -n</code> shows it directly.</span>
+        </div>
+
+        <table class="flag-table">
+          <tr><td>-A</td><td>Append a rule to the end of a chain</td></tr>
+          <tr><td>-I</td><td>Insert a rule at a specific position (often the top, for priority)</td></tr>
+          <tr><td>-D</td><td>Delete a matching rule</td></tr>
+          <tr><td>-j ACCEPT/DROP/REJECT</td><td>The action to take — DROP silently discards, REJECT replies with an error</td></tr>
+          <tr><td>-s / -d</td><td>Match by source / destination IP or CIDR range</td></tr>
+        </table>
+      </section>
+
+      <!-- ============ NAMESPACES ============ -->
+      <section class="topic" id="namespaces">
+        <div class="topic-head">
+          <div class="topic-eyebrow">06 · Containers</div>
+          <h2>Linux Namespaces</h2>
+          <p class="topic-dek">Containers aren't a kernel feature — they're a <em>combination</em> of two unrelated kernel features. This is one, and the most-asked "what actually is a container" interview answer.</p>
+        </div>
+
+        <div class="prose">
+          A namespace wraps a global system resource so that processes inside it see their <strong>own isolated instance</strong>
+          of that resource. Docker creates a new set of namespaces per container; that isolation <em>is</em> the container,
+          from the kernel's point of view.
+        </div>
+
+        <div class="concept-grid">
+          <div class="concept-card">
+            <div class="ck-label">PID namespace</div>
+            <h3>Process isolation</h3>
+            <p>Inside the container, your app is PID 1. On the host, it's some high-numbered PID. Container can't see or signal host processes.</p>
+          </div>
+          <div class="concept-card">
+            <div class="ck-label">NET namespace</div>
+            <h3>Network isolation</h3>
+            <p>Own network interfaces, IP, routing table, port space. Why two containers can both bind port 80 without conflict.</p>
+          </div>
+          <div class="concept-card">
+            <div class="ck-label">MNT namespace</div>
+            <h3>Filesystem isolation</h3>
+            <p>Own mount points. The container's root filesystem (the image) doesn't pollute or see the host's.</p>
+          </div>
+          <div class="concept-card">
+            <div class="ck-label">UTS namespace</div>
+            <h3>Hostname isolation</h3>
+            <p>Container can have its own hostname, independent of the host machine's — that random hex string you see in a shell prompt.</p>
+          </div>
+          <div class="concept-card">
+            <div class="ck-label">IPC namespace</div>
+            <h3>Inter-process isolation</h3>
+            <p>Isolates shared memory segments and semaphores so containers can't interfere with each other's IPC.</p>
+          </div>
+          <div class="concept-card">
+            <div class="ck-label">USER namespace</div>
+            <h3>UID/GID isolation</h3>
+            <p>Root inside the container can map to an unprivileged UID on the host — a key rootless-container security control.</p>
+          </div>
+        </div>
+
+        <div class="cmd-card">
+          <div class="cmd-card-head">
+            <div><span class="cmd-name">unshare</span> / <span class="cmd-name">nsenter</span></div>
+            <span class="cmd-tag">hands-on</span>
+          </div>
+          <div class="cmd-body">
+            <p class="cmd-desc">The tools that prove namespaces aren't Docker magic — you can create and enter them with plain Linux utilities.</p>
+            <div class="cmd-session">
+<div class="l"><span class="p1">$</span> <span class="c">unshare --pid --fork --mount-proc /bin/bash</span></div>
+<div class="l o"># launches bash in a NEW pid namespace — inside, "ps aux" shows almost nothing</div>
+<div class="l"><span class="p1">$</span> <span class="c">ls -la /proc/&lt;container_pid&gt;/ns/</span></div>
+<div class="l o"># every running process exposes links to the namespaces it belongs to</div>
+<div class="l"><span class="p1">$</span> <span class="c">nsenter -t &lt;pid&gt; -n -p bash</span></div>
+<div class="l o"># enter the network + pid namespace of an existing process — like "docker exec" by hand</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout tip">
+          <span class="ic">INTERVIEW ANGLE →</span>
+          <span>"What does <code>docker exec</code> actually do under the hood?" It calls <code>setns()</code> to join the existing namespaces of the target container's PID 1 — that's literally what <code>nsenter</code> demonstrates manually. There's no separate "container runtime magic"; it's the same syscall.</span>
+        </div>
+      </section>
+
+      <!-- ============ CGROUPS ============ -->
+      <section class="topic" id="cgroups">
+        <div class="topic-head">
+          <div class="topic-eyebrow">06 · Containers</div>
+          <h2>Control Groups (cgroups)</h2>
+          <p class="topic-dek">Namespaces give isolation — <strong>what you can see</strong>. cgroups give resource limits — <strong>how much you can use</strong>. Together, that's the whole container model. This is also exactly what a Kubernetes <code>resources.limits</code> block configures.</p>
+        </div>
+
+        <div class="compare">
+          <div class="col">
+            <h4>Namespaces answer</h4>
+            <ul>
+              <li>What processes can I see?</li>
+              <li>What network interfaces exist?</li>
+              <li>What's my filesystem root?</li>
+              <li>What's my hostname?</li>
+            </ul>
+          </div>
+          <div class="col">
+            <h4>cgroups answer</h4>
+            <ul>
+              <li>How much CPU can I use?</li>
+              <li>How much memory before OOM-kill?</li>
+              <li>How much disk I/O bandwidth?</li>
+              <li>How many PIDs can I spawn?</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="cmd-card">
+          <div class="cmd-card-head">
+            <div><span class="cmd-name">/sys/fs/cgroup</span></div>
+            <span class="cmd-tag">inspect</span>
+          </div>
+          <div class="cmd-body">
+            <p class="cmd-desc">cgroups are exposed as a virtual filesystem — limits are just files you read and write.</p>
+            <div class="cmd-session">
+<div class="l"><span class="p1">$</span> <span class="c">cat /sys/fs/cgroup/memory.max</span></div>
+<div class="l o">536870912 &nbsp;&nbsp;<span class="cm"># 512 MiB — exactly what "docker run -m 512m" sets</span></div>
+<div class="l"><span class="p1">$</span> <span class="c">cat /sys/fs/cgroup/cpu.max</span></div>
+<div class="l o">50000 100000 &nbsp;<span class="cm"># 50ms quota per 100ms period = 0.5 CPU cores</span></div>
+<div class="l"><span class="p1">$</span> <span class="c">docker run -m 512m --cpus="0.5" myapp</span></div>
+<div class="l o"># this flag is just a friendly wrapper writing to those exact files</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout danger">
+          <span class="ic">WHY IT MATTERS →</span>
+          <span>A container OOM-killed by the kernel isn't a Docker error — it's the <strong>memory cgroup</strong> hitting its limit and the kernel's OOM killer terminating the process. <code>docker inspect</code> showing <code>OOMKilled: true</code> and a Kubernetes pod status of <code>OOMKilled</code> both trace back to this exact mechanism. Check <code>dmesg | grep -i oom</code> on the host to confirm.</span>
+        </div>
+
+        <table class="ref-table">
+          <tr><th>controller</th><th>limits</th></tr>
+          <tr><td>cpu</td><td>CPU shares and hard quota/period bandwidth limits</td></tr>
+          <tr><td>memory</td><td>Max memory + swap, triggers OOM kill when exceeded</td></tr>
+          <tr><td>io (blkio)</td><td>Disk read/write throughput and IOPS throttling</td></tr>
+          <tr><td>pids</td><td>Max number of processes/threads — prevents fork-bomb style abuse</td></tr>
+          <tr><td>cpuset</td><td>Pin a process to specific CPU cores</td></tr>
+        </table>
+      </section>
+
+      <!-- ============ MONITORING ============ -->
+      <section class="topic" id="monitoring">
+        <div class="topic-head">
+          <div class="topic-eyebrow">07 · Observability</div>
+          <h2>Performance &amp; Resource Monitoring</h2>
+          <p class="topic-dek">Before Prometheus and Grafana ever see a metric, it came from one of these commands reading /proc.</p>
+        </div>
+
+        <table class="ref-table">
+          <tr><th>command</th><th>does</th></tr>
+          <tr><td>top / htop</td><td>Live CPU, memory, per-process resource use</td></tr>
+          <tr><td>free -h</td><td>Memory: used, free, cached, and swap — in human-readable units</td></tr>
+          <tr><td>vmstat 2</td><td>System-wide CPU, memory, and I/O stats every 2 seconds</td></tr>
+          <tr><td>iostat -x 2</td><td>Per-disk I/O throughput and latency — finds disk-bound bottlenecks</td></tr>
+          <tr><td>sar</td><td>Historical system activity reporter — useful for "what happened at 3am"</td></tr>
+          <tr><td>uptime</td><td>Load average over 1/5/15 min — compare against core count to gauge saturation</td></tr>
+          <tr><td>nproc</td><td>Number of available CPU cores — sanity-check before reading load average</td></tr>
+          <tr><td>lsof -i :8080</td><td>Which process is holding a specific port open</td></tr>
+        </table>
+
+        <div class="callout tip">
+          <span class="ic">READING LOAD AVERAGE →</span>
+          <span>A load average of <code>4.0</code> means very different things on a 2-core box (overloaded, 2x demand) versus a 16-core box (barely used). Always check <code>nproc</code> alongside <code>uptime</code> — the raw number alone is meaningless.</span>
+        </div>
+      </section>
+
+      <!-- ============ LOGS ============ -->
+      <section class="topic" id="logs">
+        <div class="topic-head">
+          <div class="topic-eyebrow">07 · Observability</div>
+          <h2>Logs &amp; journald</h2>
+          <p class="topic-dek">Before you ship logs to ELK or Loki, they live in journald and flat files. Knowing how to read them locally is what makes you fast during an incident, not just during normal ops.</p>
+        </div>
+
+        <div class="cmd-card">
+          <div class="cmd-card-head">
+            <div><span class="cmd-name">journalctl</span></div>
+            <span class="cmd-tag">systemd logs</span>
+          </div>
+          <div class="cmd-body">
+            <div class="cmd-session">
+<div class="l"><span class="p1">$</span> <span class="c">journalctl -u nginx -f</span></div>
+<div class="l o"># follow live logs for the nginx unit</div>
+<div class="l"><span class="p1">$</span> <span class="c">journalctl --since "10 min ago" -p err</span></div>
+<div class="l o"># everything at error priority or worse, last 10 minutes</div>
+<div class="l"><span class="p1">$</span> <span class="c">journalctl -b -1</span></div>
+<div class="l o"># logs from the PREVIOUS boot — vital after an unexpected reboot</div>
+<div class="l"><span class="p1">$</span> <span class="c">journalctl --disk-usage</span></div>
+<div class="l o"># how much disk the journal itself is consuming</div>
+            </div>
+          </div>
+        </div>
+
+        <table class="ref-table">
+          <tr><th>command</th><th>does</th></tr>
+          <tr><td>tail -f /var/log/syslog</td><td>Follow a plain-text log file as it grows</td></tr>
+          <tr><td>less +F file.log</td><td>tail -f behavior inside less — Ctrl+C then up/down to scroll back</td></tr>
+          <tr><td>logrotate -d /etc/logrotate.conf</td><td>Dry-run log rotation rules — confirms what would happen before it runs for real</td></tr>
+          <tr><td>dmesg -T | tail -50</td><td>Kernel ring buffer with human timestamps — the source of truth for OOM kills, disk errors, driver issues</td></tr>
+          <tr><td>docker logs -f --tail 100 container</td><td>Container logs, following, last 100 lines</td></tr>
+        </table>
+      </section>
+
+      <!-- ============ CHEATSHEET ============ -->
+      <section class="topic" id="cheatsheet">
+        <div class="topic-head">
+          <div class="topic-eyebrow">08 · Reference</div>
+          <h2>The 60-Second Cheatsheet</h2>
+          <p class="topic-dek">The commands that come up again and again — pinned here so you don't have to scroll.</p>
+        </div>
+
+        <div class="cheatsheet">
+          <div class="cheat-grid">
+            <div class="cheat-col">
+              <h5>Files &amp; Perms</h5>
+              <div class="item"><span>list all, sizes</span><b>ls -lah</b></div>
+              <div class="item"><span>find by name</span><b>find . -name</b></div>
+              <div class="item"><span>set permission</span><b>chmod 755</b></div>
+              <div class="item"><span>change owner</span><b>chown user:grp</b></div>
+              <div class="item"><span>follow log</span><b>tail -f</b></div>
+            </div>
+            <div class="cheat-col">
+              <h5>Processes</h5>
+              <div class="item"><span>list processes</span><b>ps aux</b></div>
+              <div class="item"><span>live view</span><b>htop</b></div>
+              <div class="item"><span>graceful kill</span><b>kill -15</b></div>
+              <div class="item"><span>force kill</span><b>kill -9</b></div>
+              <div class="item"><span>service status</span><b>systemctl status</b></div>
+            </div>
+            <div class="cheat-col">
+              <h5>Networking</h5>
+              <div class="item"><span>show IPs</span><b>ip a</b></div>
+              <div class="item"><span>port check</span><b>nc -zv host port</b></div>
+              <div class="item"><span>listening ports</span><b>ss -tulnp</b></div>
+              <div class="item"><span>DNS lookup</span><b>dig domain</b></div>
+              <div class="item"><span>fw rules</span><b>iptables -L -n</b></div>
+            </div>
+            <div class="cheat-col">
+              <h5>Disk</h5>
+              <div class="item"><span>disk free</span><b>df -h</b></div>
+              <div class="item"><span>dir size</span><b>du -sh *</b></div>
+              <div class="item"><span>block devices</span><b>lsblk</b></div>
+              <div class="item"><span>open by deleted</span><b>lsof | grep deleted</b></div>
+              <div class="item"><span>docker reclaim</span><b>docker system prune</b></div>
+            </div>
+            <div class="cheat-col">
+              <h5>Containers</h5>
+              <div class="item"><span>enter namespace</span><b>nsenter -t pid</b></div>
+              <div class="item"><span>view cgroup mem</span><b>cat memory.max</b></div>
+              <div class="item"><span>list ns of pid</span><b>ls /proc/pid/ns</b></div>
+              <div class="item"><span>kernel oom log</span><b>dmesg | grep oom</b></div>
+              <div class="item"><span>follow ctr logs</span><b>docker logs -f</b></div>
+            </div>
+            <div class="cheat-col">
+              <h5>Text &amp; Logs</h5>
+              <div class="item"><span>search text</span><b>grep -rn</b></div>
+              <div class="item"><span>columns</span><b>awk '{print $1}'</b></div>
+              <div class="item"><span>replace</span><b>sed -i 's/a/b/g'</b></div>
+              <div class="item"><span>json query</span><b>jq '.field'</b></div>
+              <div class="item"><span>unit logs</span><b>journalctl -u -f</b></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout tip">
+          <span class="ic">FOR THE INTERVIEW →</span>
+          <span>Be ready to explain <strong>why</strong>, not just recite syntax: why SIGTERM before SIGKILL, why namespaces + cgroups together equal a "container," why a deleted file can still hold disk space, why DNAT in iptables is how port publishing works. Interviewers probe the mental model behind the command, not memorized flags.</span>
+        </div>
+      </section>
+
+
+
+    </div>
+
+    <!-- ============ FOOTER ============ -->
+    <footer>
+      <div class="container">
+        <div class="f-prompt">$ exit</div>
+        <p>Linux Basics &amp; Commands Reference for Cloud / DevOps Engineers · single-file HTML · no external runtime deps</p>
+      </div>
+    </footer>
+
+  </main>
+</div>
+
+<div class="totop" id="toTop">↑</div>
+
+<script>
+  // mobile sidebar toggle
+  const sidebar = document.getElementById('sidebar');
+  const toggle = document.getElementById('menuToggle');
+  const overlay = document.getElementById('overlay');
+  toggle.addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('show');
+  });
+  overlay.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('show');
+  });
+  document.querySelectorAll('.tree-nav a.node').forEach(a=>{
+    a.addEventListener('click', ()=>{
+      sidebar.classList.remove('open');
+      overlay.classList.remove('show');
+    });
+  });
+
+  // active nav highlight on scroll
+  const navLinks = document.querySelectorAll('.tree-nav a.node');
+  const sections = Array.from(navLinks).map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+
+  function onScroll(){
+    let activeIdx = 0;
+    sections.forEach((sec, i) => {
+      if (sec.getBoundingClientRect().top - 120 <= 0) activeIdx = i;
+    });
+    navLinks.forEach(a => a.classList.remove('active'));
+    if (navLinks[activeIdx]) navLinks[activeIdx].classList.add('active');
+
+    const toTop = document.getElementById('toTop');
+    if (window.scrollY > 600) toTop.classList.add('show');
+    else toTop.classList.remove('show');
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+
+  document.getElementById('toTop').addEventListener('click', () => {
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Azure Virtual Machines — Compute Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================
+   TOKENS
+   ============================================ */
+:root {
+  --bg: #0B1220;
+  --bg-panel: #131D2E;
+  --bg-panel-2: #1C2B3F;
+  --steel: #1C2B3F;
+  --steel-line: #2A3B52;
+  --azure: #0078D4;
+  --azure-bright: #2B96E8;
+  --amber: #FFB900;
+  --text-bright: #E8ECF1;
+  --text-body: #AAB6C5;
+  --text-dim: #6B7A8E;
+
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'IBM Plex Sans', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+
+  --nav-w: 240px;
+  --nav-w-collapsed: 64px;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text-body);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  font-size: 16px;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  color: var(--text-bright);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+code {
+  font-family: var(--font-mono);
+  background: rgba(0, 120, 212, 0.12);
+  color: var(--azure-bright);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+a { color: var(--azure-bright); }
+
+::selection { background: var(--azure); color: white; }
+
+:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+
+main {
+  margin-left: var(--nav-w);
+  transition: margin-left 0.3s ease;
+}
+
+body.nav-collapsed main { margin-left: var(--nav-w-collapsed); }
+
+/* ============================================
+   RACK NAV
+   ============================================ */
+.rack-nav {
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  width: var(--nav-w);
+  background: var(--bg-panel);
+  border-right: 1px solid var(--steel-line);
+  display: flex;
+  flex-direction: column;
+  padding: 24px 0;
+  z-index: 100;
+  transition: width 0.3s ease;
+  overflow: hidden;
+}
+
+body.nav-collapsed .rack-nav { width: var(--nav-w-collapsed); }
+
+.rack-nav__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 20px 24px;
+  border-bottom: 1px solid var(--steel-line);
+  margin-bottom: 16px;
+  white-space: nowrap;
+}
+
+.rack-nav__brand-mark {
+  color: var(--azure-bright);
+  font-size: 18px;
+  letter-spacing: -2px;
+}
+
+.rack-nav__brand-text {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-bright);
+  letter-spacing: 0.05em;
+  line-height: 1.3;
+}
+
+.rack-nav__list {
+  list-style: none;
+  margin: 0;
+  padding: 0 12px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.rack-nav__link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 6px;
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+  margin-bottom: 2px;
+}
+
+.rack-nav__link:hover {
+  background: var(--bg-panel-2);
+  color: var(--text-bright);
+}
+
+.rack-nav__link.is-active {
+  background: rgba(0, 120, 212, 0.15);
+  color: var(--azure-bright);
+}
+
+.rack-nav__link.is-active .u-tag {
+  background: var(--azure);
+  color: white;
+}
+
+.u-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  background: var(--steel-line);
+  color: var(--text-dim);
+  padding: 2px 6px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.u-tag--lg {
+  font-size: 13px;
+  padding: 4px 10px;
+  background: rgba(0, 120, 212, 0.15);
+  color: var(--azure-bright);
+}
+
+.rack-nav__toggle {
+  display: none;
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+.btn {
+  display: inline-block;
+  padding: 13px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14.5px;
+  text-decoration: none;
+  transition: transform 0.15s, box-shadow 0.15s;
+  border: 1px solid transparent;
+}
+
+.btn:hover { transform: translateY(-1px); }
+
+.btn--primary {
+  background: var(--azure);
+  color: white;
+  box-shadow: 0 4px 20px rgba(0, 120, 212, 0.3);
+}
+
+.btn--primary:hover { box-shadow: 0 6px 24px rgba(0, 120, 212, 0.45); }
+
+.btn--ghost {
+  background: transparent;
+  border-color: var(--steel-line);
+  color: var(--text-bright);
+}
+
+.btn--ghost:hover { border-color: var(--azure-bright); }
+
+/* ============================================
+   HERO
+   ============================================ */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 80px 64px;
+  overflow: hidden;
+}
+
+.hero__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(0, 120, 212, 0.18), transparent 45%),
+    radial-gradient(circle at 85% 80%, rgba(255, 185, 0, 0.08), transparent 40%);
+}
+
+.hero__grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--steel-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--steel-line) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity: 0.35;
+  mask-image: linear-gradient(to bottom, transparent, black 20%, black 70%, transparent);
+}
+
+.hero__inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 64px;
+  align-items: center;
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--amber);
+  margin: 0 0 18px;
+  font-weight: 500;
+}
+
+.hero__title {
+  font-size: clamp(2.2rem, 4vw, 3.4rem);
+  line-height: 1.08;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+
+.hero__title-accent { color: var(--azure-bright); }
+
+.hero__sub {
+  font-size: 16.5px;
+  color: var(--text-body);
+  max-width: 540px;
+  margin-bottom: 32px;
+}
+
+.hero__cta-row { display: flex; gap: 14px; flex-wrap: wrap; }
+
+/* Console */
+.console {
+  background: #0A0F18;
+  border: 1px solid var(--steel-line);
+  border-radius: 12px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+  overflow: hidden;
+}
+
+.console__bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--steel);
+  border-bottom: 1px solid var(--steel-line);
+}
+
+.console__dot {
+  width: 11px; height: 11px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.console__dot--r { background: #FF5F57; }
+.console__dot--y { background: #FEBC2E; }
+.console__dot--g { background: #28C840; }
+
+.console__bar-title {
+  margin-left: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.console__body {
+  margin: 0;
+  padding: 20px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.7;
+  color: #B8E986;
+  min-height: 320px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.console__body .cmd { color: #E8ECF1; }
+.console__body .ok { color: #28C840; }
+.console__body .key { color: var(--azure-bright); }
+.console__body .dim { color: var(--text-dim); }
+.console__cursor {
+  display: inline-block;
+  width: 7px; height: 14px;
+  background: var(--amber);
+  animation: blink 1s step-end infinite;
+  vertical-align: middle;
+}
+
+@keyframes blink { 50% { opacity: 0; } }
+
+/* ============================================
+   GENERIC SECTION SCAFFOLDING
+   ============================================ */
+.u-section {
+  padding: 100px 64px;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.u-section--dark {
+  max-width: none;
+  background: var(--bg-panel);
+  border-top: 1px solid var(--steel-line);
+  border-bottom: 1px solid var(--steel-line);
+  padding-left: 64px;
+  padding-right: 64px;
+}
+
+.u-section--dark > * { max-width: 1280px; margin-left: auto; margin-right: auto; }
+.u-section--dark > *:not(:last-child) { margin-bottom: 0; }
+
+.u-section__head {
+  max-width: 720px;
+  margin-bottom: 48px;
+}
+
+.u-section__head .u-tag--lg { margin-bottom: 16px; display: inline-block; }
+
+.u-section__head h2 {
+  font-size: clamp(1.7rem, 2.8vw, 2.3rem);
+  margin-bottom: 14px;
+  line-height: 1.2;
+}
+
+.u-section__dek {
+  color: var(--text-body);
+  font-size: 16px;
+  margin: 0;
+}
+
+/* ============================================
+   U1 — STACK DIAGRAM
+   ============================================ */
+.stack-diagram {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 48px;
+  max-width: 760px;
+}
+
+.stack-layer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  border-radius: 8px;
+  border: 1px solid var(--steel-line);
+  opacity: 0;
+  transform: translateY(12px);
+  animation: rise 0.5s ease forwards;
+  animation-delay: calc(var(--delay) * 0.1s);
+}
+
+@keyframes rise { to { opacity: 1; transform: translateY(0); } }
+
+.stack-layer--you { background: rgba(0, 120, 212, 0.14); border-color: rgba(0, 120, 212, 0.4); }
+.stack-layer--vm { background: rgba(0, 120, 212, 0.08); border-color: rgba(0, 120, 212, 0.25); }
+.stack-layer--hv { background: var(--bg-panel); }
+.stack-layer--hw { background: var(--bg-panel-2); }
+
+.stack-layer__label strong {
+  display: block;
+  color: var(--text-bright);
+  font-size: 15px;
+  margin-bottom: 2px;
+}
+
+.stack-layer__label span {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.stack-layer__owner {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  padding-left: 20px;
+}
+
+.callout-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.callout-grid--three { grid-template-columns: repeat(3, 1fr); margin-top: 40px; }
+
+.callout {
+  background: var(--bg-panel);
+  border: 1px solid var(--steel-line);
+  border-radius: 10px;
+  padding: 26px;
+}
+
+.callout--sm { background: var(--steel); padding: 22px; }
+
+.callout h3 {
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.callout p { margin: 0; font-size: 14.5px; }
+
+/* ============================================
+   U2 — FAMILIES + FILTER
+   ============================================ */
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 36px;
+}
+
+.filter-chip {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: var(--steel);
+  border: 1px solid var(--steel-line);
+  color: var(--text-body);
+  padding: 9px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.filter-chip:hover { border-color: var(--azure-bright); color: var(--text-bright); }
+
+.filter-chip.is-active {
+  background: var(--azure);
+  border-color: var(--azure);
+  color: white;
+}
+
+.family-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-bottom: 48px;
+}
+
+.family-card {
+  background: var(--steel);
+  border: 1px solid var(--steel-line);
+  border-radius: 10px;
+  padding: 22px 18px;
+  transition: opacity 0.3s, transform 0.3s, border-color 0.3s;
+}
+
+.family-card.is-dimmed {
+  opacity: 0.25;
+  transform: scale(0.97);
+}
+
+.family-card__letter {
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--azure-bright);
+  display: block;
+  margin-bottom: 10px;
+}
+
+.family-card h3 {
+  font-size: 14.5px;
+  margin-bottom: 8px;
+}
+
+.family-card p {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  margin: 0;
+}
+
+.spec-table-wrap, .decision-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--steel-line);
+  border-radius: 10px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+caption {
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-dim);
+  padding: 14px 18px;
+  background: var(--bg-panel-2);
+  border-bottom: 1px solid var(--steel-line);
+}
+
+th, td {
+  text-align: left;
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--steel-line);
+}
+
+th {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+  background: var(--bg-panel-2);
+}
+
+td { color: var(--text-body); }
+tr:last-child td { border-bottom: none; }
+
+/* ============================================
+   U3 — SCALING
+   ============================================ */
+.scale-compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.scale-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--steel-line);
+  border-radius: 12px;
+  padding: 32px;
+}
+
+.scale-card--featured {
+  border-color: rgba(0, 120, 212, 0.4);
+  background: linear-gradient(160deg, rgba(0, 120, 212, 0.1), var(--bg-panel));
+}
+
+.scale-card__icon {
+  color: var(--azure-bright);
+  margin-bottom: 16px;
+}
+
+.scale-card h3 { font-size: 18px; margin-bottom: 12px; }
+.scale-card p { font-size: 14.5px; margin-bottom: 14px; }
+.scale-card__use {
+  font-size: 13px;
+  color: var(--amber);
+  margin: 0;
+  font-weight: 500;
+}
+
+.autoscale-strip {
+  display: flex;
+  gap: 0;
+  background: #0A0F18;
+  border: 1px solid var(--steel-line);
+  border-radius: 10px;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.autoscale-strip__rule {
+  flex: 1;
+  padding: 16px 20px;
+  border-right: 1px solid var(--steel-line);
+  color: #B8E986;
+}
+
+.autoscale-strip__rule:last-child { border-right: none; color: var(--text-dim); }
+
+/* ============================================
+   U4 — STORAGE
+   ============================================ */
+.disk-diagram {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 32px;
+  margin-bottom: 32px;
+  align-items: start;
+}
+
+.disk-vm-box {
+  border: 2px dashed var(--steel-line);
+  border-radius: 14px;
+  padding: 32px 24px 24px;
+  position: relative;
+}
+
+.disk-vm-box__label {
+  position: absolute;
+  top: -12px;
+  left: 24px;
+  background: var(--bg-panel);
+  padding: 0 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.disk {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 18px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  border-left: 4px solid;
+  cursor: default;
+  transition: background 0.15s;
+}
+
+.disk:last-child { margin-bottom: 0; }
+.disk:hover, .disk:focus-visible { background: rgba(255,255,255,0.03); }
+
+.disk--os { border-color: var(--azure-bright); background: rgba(0,120,212,0.08); }
+.disk--temp { border-color: #FF6B5F; background: rgba(255,107,95,0.08); }
+.disk--data { border-color: var(--amber); background: rgba(255,185,0,0.08); }
+
+.disk__name { font-weight: 600; color: var(--text-bright); font-size: 14.5px; }
+.disk__detail { font-size: 12.5px; color: var(--text-dim); }
+
+.disk-tiers {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.disk-tier {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--steel);
+  border: 1px solid var(--steel-line);
+  border-radius: 8px;
+  padding: 14px 18px;
+}
+
+.disk-tier__name { font-size: 13.5px; font-weight: 600; color: var(--text-bright); }
+.disk-tier__use { font-size: 12px; color: var(--text-dim); }
+
+.warning-banner {
+  background: rgba(255, 107, 95, 0.1);
+  border: 1px solid rgba(255, 107, 95, 0.35);
+  border-radius: 10px;
+  padding: 18px 22px;
+  font-size: 14.5px;
+  color: #FFD4CF;
+}
+
+.warning-banner strong { color: #FF6B5F; }
+
+/* ============================================
+   U5 — NETWORKING DIAGRAM (SVG injected via JS)
+   ============================================ */
+.net-diagram {
+  margin-bottom: 40px;
+  border: 1px solid var(--steel-line);
+  border-radius: 14px;
+  background: #0A0F18;
+  padding: 20px;
+  overflow-x: auto;
+}
+
+.net-diagram svg { width: 100%; height: auto; display: block; min-width: 640px; }
+
+/* ============================================
+   U6 — AVAILABILITY LADDER
+   ============================================ */
+.ha-ladder {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.ha-rung {
+  background: var(--bg-panel);
+  border: 1px solid var(--steel-line);
+  border-radius: 12px;
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.ha-rung--featured {
+  border-color: var(--azure);
+  background: linear-gradient(160deg, rgba(0,120,212,0.12), var(--bg-panel));
+}
+
+.ha-rung__scope {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--amber);
+  margin-bottom: 10px;
+}
+
+.ha-rung h3 { font-size: 16px; margin-bottom: 10px; }
+.ha-rung p { font-size: 13.5px; flex: 1; margin-bottom: 16px; }
+
+.ha-rung__sla {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-bright);
+  background: var(--steel);
+  padding: 6px 12px;
+  border-radius: 6px;
+  text-align: center;
+}
+
+/* ============================================
+   U7 — PRICING
+   ============================================ */
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.price-card {
+  border: 1px solid var(--steel-line);
+  border-radius: 12px;
+  padding: 26px 22px;
+  background: var(--bg-panel);
+}
+
+.price-card h3 { font-size: 17px; margin-bottom: 8px; }
+
+.price-card__tag {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--azure-bright);
+  margin-bottom: 14px;
+}
+
+.price-card p { font-size: 14px; margin: 0; }
+
+/* ============================================
+   U8 — SECURITY GRID
+   ============================================ */
+.security-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px 28px;
+}
+
+.sec-item__num {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-dim);
+  display: block;
+  margin-bottom: 10px;
+}
+
+.sec-item h3 { font-size: 15.5px; margin-bottom: 8px; }
+.sec-item p { font-size: 14px; margin: 0; }
+
+/* ============================================
+   U9 — DECISION TABLE
+   ============================================ */
+.decision-table td:nth-child(2) strong { color: var(--azure-bright); }
+
+.closing-strip {
+  margin-top: 40px;
+  padding: 32px 36px;
+  border-left: 3px solid var(--amber);
+  background: var(--bg-panel);
+  border-radius: 0 10px 10px 0;
+}
+
+.closing-strip p {
+  font-family: var(--font-display);
+  font-size: 19px;
+  color: var(--text-bright);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+.site-footer {
+  padding: 40px 64px 60px;
+  max-width: 1280px;
+  margin: 0 auto;
+  border-top: 1px solid var(--steel-line);
+}
+
+.site-footer p {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  margin: 0;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 1100px) {
+  .family-grid { grid-template-columns: repeat(3, 1fr); }
+  .security-grid { grid-template-columns: repeat(2, 1fr); }
+  .pricing-grid { grid-template-columns: repeat(2, 1fr); }
+  .ha-ladder { grid-template-columns: repeat(2, 1fr); }
+  .callout-grid--three { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 900px) {
+  .hero__inner { grid-template-columns: 1fr; }
+  .disk-diagram { grid-template-columns: 1fr; }
+  .scale-compare { grid-template-columns: 1fr; }
+  .callout-grid { grid-template-columns: 1fr; }
+  .autoscale-strip { flex-direction: column; }
+  .autoscale-strip__rule { border-right: none; border-bottom: 1px solid var(--steel-line); }
+}
+
+@media (max-width: 768px) {
+  :root { --nav-w: 0px; }
+  .rack-nav { width: 80vw; max-width: 280px; transform: translateX(-100%); transition: transform 0.3s ease; box-shadow: 30px 0 60px rgba(0,0,0,0.4); }
+  body.nav-open .rack-nav { transform: translateX(0); }
+  main { margin-left: 0; }
+  .rack-nav__toggle {
+    display: flex;
+    position: fixed;
+    top: 16px; left: 16px;
+    width: 44px; height: 44px;
+    background: var(--bg-panel);
+    border: 1px solid var(--steel-line);
+    border-radius: 8px;
+    color: var(--text-bright);
+    font-size: 20px;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    cursor: pointer;
+  }
+  .hero { padding: 100px 24px 60px; }
+  .u-section { padding: 60px 24px; }
+  .u-section--dark { padding-left: 24px; padding-right: 24px; }
+  .family-grid { grid-template-columns: repeat(2, 1fr); }
+  .security-grid { grid-template-columns: 1fr; }
+  .pricing-grid { grid-template-columns: 1fr; }
+  .ha-ladder { grid-template-columns: 1fr; }
+  .callout-grid--three { grid-template-columns: 1fr; }
+  .hero__title { font-size: 2rem; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- ============ RACK NAV (left side, sticky) ============ -->
+<nav class="rack-nav" id="rackNav" aria-label="Section navigation">
+  <div class="rack-nav__brand">
+    <span class="rack-nav__brand-mark">▮▮</span>
+    <span class="rack-nav__brand-text">AZURE VM<br>REFERENCE</span>
+  </div>
+  <ol class="rack-nav__list">
+    <li><a href="#hero" class="rack-nav__link" data-u="U0"><span class="u-tag">U0</span>Overview</a></li>
+    <li><a href="#what-is" class="rack-nav__link" data-u="U1"><span class="u-tag">U1</span>What is a VM</a></li>
+    <li><a href="#sizes" class="rack-nav__link" data-u="U2"><span class="u-tag">U2</span>Size families</a></li>
+    <li><a href="#scaling" class="rack-nav__link" data-u="U3"><span class="u-tag">U3</span>Scaling</a></li>
+    <li><a href="#storage" class="rack-nav__link" data-u="U4"><span class="u-tag">U4</span>Storage & disks</a></li>
+    <li><a href="#networking" class="rack-nav__link" data-u="U5"><span class="u-tag">U5</span>Networking</a></li>
+    <li><a href="#ha" class="rack-nav__link" data-u="U6"><span class="u-tag">U6</span>Availability</a></li>
+    <li><a href="#pricing" class="rack-nav__link" data-u="U7"><span class="u-tag">U7</span>Pricing models</a></li>
+    <li><a href="#security" class="rack-nav__link" data-u="U8"><span class="u-tag">U8</span>Security</a></li>
+    <li><a href="#decision" class="rack-nav__link" data-u="U9"><span class="u-tag">U9</span>Decision guide</a></li>
+  </ol>
+  <button class="rack-nav__toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="true">≡</button>
+</nav>
+
+<main>
+
+  <!-- ============ HERO: live provisioning console ============ -->
+  <section class="hero" id="hero">
+    <div class="hero__bg" aria-hidden="true">
+      <div class="hero__grid"></div>
+    </div>
+    <div class="hero__inner">
+      <div class="hero__copy">
+        <p class="eyebrow">Infrastructure as a Service · Compute</p>
+        <h1 class="hero__title">A virtual machine is<br>a rented slice of<br><span class="hero__title-accent">a real server.</span></h1>
+        <p class="hero__sub">Azure Virtual Machines give you on-demand, configurable compute — full control over the OS, no hardware to rack, power, or replace. This is the field reference: size families, scaling mechanics, storage, networking, resilience, pricing, and security, in the order a solution architect actually needs them.</p>
+        <div class="hero__cta-row">
+          <a href="#what-is" class="btn btn--primary">Start with the fundamentals</a>
+          <a href="#sizes" class="btn btn--ghost">Jump to size families</a>
+        </div>
+      </div>
+      <div class="console" id="console" role="img" aria-label="Simulated Azure CLI virtual machine creation sequence">
+        <div class="console__bar">
+          <span class="console__dot console__dot--r"></span>
+          <span class="console__dot console__dot--y"></span>
+          <span class="console__dot console__dot--g"></span>
+          <span class="console__bar-title">az vm create — bash</span>
+        </div>
+        <pre class="console__body" id="consoleBody"></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ U1: WHAT IS A VM ============ -->
+  <section class="u-section" id="what-is">
+    <div class="u-section__head">
+      <span class="u-tag u-tag--lg">U1</span>
+      <h2>What you're actually renting</h2>
+      <p class="u-section__dek">Four layers sit between your workload and Azure's physical hardware. Understanding the stack tells you what you control, what Microsoft controls, and where the blast radius of a failure stops.</p>
+    </div>
+
+    <div class="stack-diagram">
+      <div class="stack-layer stack-layer--you" style="--delay:0">
+        <div class="stack-layer__label"><strong>Your workload</strong><span>OS, runtime, application, data</span></div>
+        <div class="stack-layer__owner">You manage</div>
+      </div>
+      <div class="stack-layer stack-layer--vm" style="--delay:1">
+        <div class="stack-layer__label"><strong>Virtual machine</strong><span>vCPUs, memory, temp disk — defined by VM size</span></div>
+        <div class="stack-layer__owner">You manage</div>
+      </div>
+      <div class="stack-layer stack-layer--hv" style="--delay:2">
+        <div class="stack-layer__label"><strong>Hyper-V hypervisor</strong><span>Isolates and schedules tenants on shared hardware</span></div>
+        <div class="stack-layer__owner">Microsoft manages</div>
+      </div>
+      <div class="stack-layer stack-layer--hw" style="--delay:3">
+        <div class="stack-layer__label"><strong>Physical host server</strong><span>Real CPU, RAM, NICs, local SSD — in a specific datacenter</span></div>
+        <div class="stack-layer__owner">Microsoft manages</div>
+      </div>
+    </div>
+
+    <div class="callout-grid">
+      <div class="callout">
+        <h3>The shared-responsibility line</h3>
+        <p>For IaaS, the line sits between the hypervisor and the guest OS. Microsoft patches the physical host and hypervisor; you patch the OS, your runtime, and your application — including its CVEs. This is the single fact that determines most of an architect's day-two workload on VMs.</p>
+      </div>
+      <div class="callout">
+        <h3>Why size is the master setting</h3>
+        <p>A VM's <strong>size</strong> (e.g. <code>Standard_D4s_v5</code>) isn't just "how big" — it sets vCPU count, memory, temp disk, max data disks, max NICs, and max network/storage throughput simultaneously. Changing size later means a reboot, not a re-architecture, which is what makes Azure VMs forgiving to start small with.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ U2: SIZE FAMILIES (signature interactive) ============ -->
+  <section class="u-section u-section--dark" id="sizes">
+    <div class="u-section__head">
+      <span class="u-tag u-tag--lg">U2</span>
+      <h2>Size families — pick the silicon, not just the seat count</h2>
+      <p class="u-section__dek">Every Azure VM size belongs to a family tuned for a workload shape. Filter below by what you're actually running; the families that fit stay lit, the rest fade back.</p>
+    </div>
+
+    <div class="filter-bar" id="filterBar" role="group" aria-label="Filter VM families by workload">
+      <button class="filter-chip is-active" data-filter="all">All workloads</button>
+      <button class="filter-chip" data-filter="general">General purpose</button>
+      <button class="filter-chip" data-filter="compute">Compute-intensive</button>
+      <button class="filter-chip" data-filter="memory">Memory-intensive</button>
+      <button class="filter-chip" data-filter="storage">Storage / I/O-heavy</button>
+      <button class="filter-chip" data-filter="gpu">GPU / accelerated</button>
+    </div>
+
+    <div class="family-grid" id="familyGrid">
+      <!-- populated by JS -->
+    </div>
+
+    <div class="spec-table-wrap">
+      <table class="spec-table">
+        <caption>Representative sizes inside each family — illustrative, current generation as of early 2026</caption>
+        <thead>
+          <tr><th>SKU</th><th>Family</th><th>vCPUs</th><th>RAM (GiB)</th><th>Temp disk</th><th>Typical fit</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>B2s</code></td><td>B-series, burstable</td><td>2</td><td>4</td><td>—</td><td>Dev/test, low-traffic web</td></tr>
+          <tr><td><code>D4s_v5</code></td><td>D-series, general purpose</td><td>4</td><td>16</td><td>—</td><td>App servers, small DBs</td></tr>
+          <tr><td><code>F8s_v2</code></td><td>F-series, compute-optimized</td><td>8</td><td>16</td><td>128 GiB</td><td>Batch, gaming servers, CI runners</td></tr>
+          <tr><td><code>E8s_v5</code></td><td>E-series, memory-optimized</td><td>8</td><td>64</td><td>—</td><td>In-memory caches, relational DBs</td></tr>
+          <tr><td><code>L8s_v3</code></td><td>L-series, storage-optimized</td><td>8</td><td>64</td><td>1,920 GiB NVMe</td><td>Cassandra, MongoDB, big data</td></tr>
+          <tr><td><code>NC24ads_A100_v4</code></td><td>N-series, GPU</td><td>24</td><td>220</td><td>1,123 GiB</td><td>ML training, CUDA workloads</td></tr>
+          <tr><td><code>M64s</code></td><td>M-series, massive memory</td><td>64</td><td>1,024</td><td>—</td><td>SAP HANA, huge in-memory DBs</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ U3: SCALING ============ -->
+  <section class="u-section" id="scaling">
+    <div class="u-section__head">
+      <span class="u-tag u-tag--lg">U3</span>
+      <h2>Scaling — vertical first, horizontal at production</h2>
+      <p class="u-section__dek">A single VM has a ceiling. Two mechanisms push past it, and they solve different problems.</p>
+    </div>
+
+    <div class="scale-compare">
+      <div class="scale-card">
+        <div class="scale-card__icon" aria-hidden="true">
+          <svg viewBox="0 0 64 64" width="48" height="48"><rect x="20" y="40" width="24" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2.5"/><rect x="16" y="22" width="32" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M32 18 L32 6 M26 12 L32 6 L38 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h3>Vertical scaling — resize</h3>
+        <p>Stop the VM, change its size (e.g. <code>D2s_v5 → D8s_v5</code>), start it again. More vCPU and RAM on the same instance. Simple, but capped by the largest size in that family and the chosen region, and it always means downtime.</p>
+        <p class="scale-card__use">Use when: a single workload outgrows its box and brief downtime is acceptable.</p>
+      </div>
+      <div class="scale-card scale-card--featured">
+        <div class="scale-card__icon" aria-hidden="true">
+          <svg viewBox="0 0 64 64" width="48" height="48"><rect x="4" y="24" width="14" height="22" rx="2" fill="none" stroke="currentColor" stroke-width="2.5"/><rect x="25" y="18" width="14" height="28" rx="2" fill="currentColor" opacity="0.15" stroke="currentColor" stroke-width="2.5"/><rect x="46" y="24" width="14" height="22" rx="2" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="3 3"/></svg>
+        </div>
+        <h3>Horizontal scaling — VM Scale Sets</h3>
+        <p>A Virtual Machine Scale Set manages a fleet of identical VMs behind a load balancer, adding or removing instances based on CPU, memory, queue length, or a schedule. No single-instance downtime — the fleet absorbs load while individual members come and go.</p>
+        <p class="scale-card__use">Use when: traffic is variable, or you need resilience to a single instance failing.</p>
+      </div>
+    </div>
+
+    <div class="autoscale-strip" aria-hidden="false">
+      <div class="autoscale-strip__rule">IF avg CPU &gt; 70% for 10 min → add 2 instances</div>
+      <div class="autoscale-strip__rule">IF avg CPU &lt; 25% for 10 min → remove 1 instance</div>
+      <div class="autoscale-strip__rule">Min 2 · Max 20 · across 3 zones</div>
+    </div>
+  </section>
+
+  <!-- ============ U4: STORAGE ============ -->
+  <section class="u-section u-section--dark" id="storage">
+    <div class="u-section__head">
+      <span class="u-tag u-tag--lg">U4</span>
+      <h2>Storage & disks — three disks, one rule about persistence</h2>
+      <p class="u-section__dek">Every VM has at least an OS disk and a temp disk by default; data disks are added as needed. Only one of these survives everything.</p>
+    </div>
+
+    <div class="disk-diagram" id="diskDiagram">
+      <div class="disk-vm-box">
+        <span class="disk-vm-box__label">Virtual machine</span>
+        <div class="disk disk--os" tabindex="0">
+          <span class="disk__name">OS disk</span>
+          <span class="disk__detail">Managed disk · persistent · holds the boot volume</span>
+        </div>
+        <div class="disk disk--temp" tabindex="0">
+          <span class="disk__name">Temp disk</span>
+          <span class="disk__detail">Local NVMe/SSD on the host · ephemeral · wiped on host move</span>
+        </div>
+        <div class="disk disk--data" tabindex="0">
+          <span class="disk__name">Data disk(s)</span>
+          <span class="disk__detail">Managed disk · persistent · attach up to size-defined max</span>
+        </div>
+      </div>
+      <div class="disk-tiers">
+        <div class="disk-tier"><span class="disk-tier__name">Standard HDD</span><span class="disk-tier__use">Backup, infrequent access</span></div>
+        <div class="disk-tier"><span class="disk-tier__name">Standard SSD</span><span class="disk-tier__use">Web servers, light dev/test</span></div>
+        <div class="disk-tier"><span class="disk-tier__name">Premium SSD</span><span class="disk-tier__use">Production DBs, low-latency I/O</span></div>
+        <div class="disk-tier"><span class="disk-tier__name">Premium SSD v2 / Ultra</span><span class="disk-tier__use">Tunable IOPS independent of size, SAP/HPC</span></div>
+      </div>
+    </div>
+
+    <div class="warning-banner">
+      <strong>The one fact that causes outages:</strong> the temp disk is not backed by durable storage. If the host fails or the VM is moved, anything written only to the temp disk is gone. Databases, application state, and anything you'd be upset to lose belong on a managed data disk.
+    </div>
+  </section>
+
+  <!-- ============ U5: NETWORKING ============ -->
+  <section class="u-section" id="networking">
+    <div class="u-section__head">
+      <span class="u-tag u-tag--lg">U5</span>
+      <h2>Networking — the VM is one tenant in a virtual network</h2>
+      <p class="u-section__dek">A VM never sits alone. It's a NIC inside a subnet, inside a VNet, governed by rules that exist whether or not you've thought about them yet.</p>
+    </div>
+
+    <div class="net-diagram" id="netDiagram"></div>
+
+    <div class="callout-grid callout-grid--three">
+      <div class="callout callout--sm">
+        <h3>Network Security Group</h3>
+        <p>Stateful firewall rules at the subnet or NIC level. Default rules deny all inbound from the internet — you open only what's needed, by port and source.</p>
+      </div>
+      <div class="callout callout--sm">
+        <h3>Public vs private IP</h3>
+        <p>A public IP makes a VM internet-reachable directly — rare in production. Most VMs sit on private IPs behind a load balancer, bastion, or VPN gateway.</p>
+      </div>
+      <div class="callout callout--sm">
+        <h3>Accelerated networking</h3>
+        <p>Bypasses the host's software switch via SR-IOV for lower latency and higher throughput — available on most general-purpose and compute-optimized sizes at no extra cost.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ U6: AVAILABILITY ============ -->
+  <section class="u-section u-section--dark" id="ha">
+    <div class="u-section__head">
+      <span class="u-tag u-tag--lg">U6</span>
+      <h2>Availability — what survives which failure</h2>
+      <p class="u-section__dek">Azure's resilience options map to specific failure domains. Pick based on what you're insuring against, not by reflex.</p>
+    </div>
+
+    <div class="ha-ladder">
+      <div class="ha-rung">
+        <div class="ha-rung__scope">Single VM</div>
+        <h3>No redundancy</h3>
+        <p>Survives nothing beyond automatic host-level healing. Fine for dev/test; never for a production SLA conversation.</p>
+        <div class="ha-rung__sla">No SLA</div>
+      </div>
+      <div class="ha-rung">
+        <div class="ha-rung__scope">Availability Set</div>
+        <h3>Survives rack failure</h3>
+        <p>Spreads VMs across distinct fault domains (power/network) and update domains (host patching groups) inside one datacenter.</p>
+        <div class="ha-rung__sla">99.95% SLA</div>
+      </div>
+      <div class="ha-rung ha-rung--featured">
+        <div class="ha-rung__scope">Availability Zones</div>
+        <h3>Survives datacenter failure</h3>
+        <p>Spreads VMs across physically separate datacenters within a region, each with independent power, cooling, and networking.</p>
+        <div class="ha-rung__sla">99.99% SLA</div>
+      </div>
+      <div class="ha-rung">
+        <div class="ha-rung__scope">Paired region + Site Recovery</div>
+        <h3>Survives region failure</h3>
+        <p>Asynchronous replication to a second region for disaster recovery — your last line when an entire region is unreachable.</p>
+        <div class="ha-rung__sla">RTO/RPO-defined</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ U7: PRICING ============ -->
+  <section class="u-section" id="pricing">
+    <div class="u-section__head">
+      <span class="u-tag u-tag--lg">U7</span>
+      <h2>Pricing models — the same VM, four different bills</h2>
+      <p class="u-section__dek">Compute cost is a purchasing decision as much as a technical one. The size doesn't change; the commitment does.</p>
+    </div>
+
+    <div class="pricing-grid">
+      <div class="price-card">
+        <h3>Pay-as-you-go</h3>
+        <div class="price-card__tag">No commitment</div>
+        <p>Billed per second, on demand. Highest unit price, total flexibility. The default until you understand your steady-state load.</p>
+      </div>
+      <div class="price-card">
+        <h3>Reserved Instances</h3>
+        <div class="price-card__tag">1 or 3-year term</div>
+        <p>Commit to a VM size/region for a term in exchange for up to ~70% off pay-as-you-go. Right for predictable, always-on workloads.</p>
+      </div>
+      <div class="price-card">
+        <h3>Spot VMs</h3>
+        <div class="price-card__tag">Interruptible</div>
+        <p>Bid on Azure's unused capacity for steep discounts — Azure can evict your VM with short notice when capacity is needed elsewhere. Right for batch jobs, CI, and stateless workers that tolerate interruption.</p>
+      </div>
+      <div class="price-card">
+        <h3>Azure Hybrid Benefit</h3>
+        <div class="price-card__tag">License reuse</div>
+        <p>Apply existing on-prem Windows Server or SQL Server licenses with Software Assurance to cut the licensing portion of the VM cost.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ U8: SECURITY ============ -->
+  <section class="u-section u-section--dark" id="security">
+    <div class="u-section__head">
+      <span class="u-tag u-tag--lg">U8</span>
+      <h2>Security — defaults that matter on day one</h2>
+      <p class="u-section__dek">Most VM breaches trace back to one of these being skipped, not to anything exotic.</p>
+    </div>
+
+    <div class="security-grid">
+      <div class="sec-item">
+        <span class="sec-item__num">01</span>
+        <h3>Managed identity over secrets</h3>
+        <p>Let the VM authenticate to other Azure services via a system-assigned identity instead of embedding connection strings or keys in config files.</p>
+      </div>
+      <div class="sec-item">
+        <span class="sec-item__num">02</span>
+        <h3>Just-in-time VM access</h3>
+        <p>Lock down management ports (RDP/SSH) by default; open them only on request, for a limited window, via Microsoft Defender for Cloud.</p>
+      </div>
+      <div class="sec-item">
+        <span class="sec-item__num">03</span>
+        <h3>Disk encryption at rest</h3>
+        <p>Azure Disk Encryption (BitLocker/DM-Crypt) or platform-managed encryption protects data disks; bring your own keys via Key Vault when compliance requires it.</p>
+      </div>
+      <div class="sec-item">
+        <span class="sec-item__num">04</span>
+        <h3>Patch management</h3>
+        <p>Automatic guest patching or Azure Update Manager closes the OS-level gap that sits squarely on your side of the shared-responsibility line.</p>
+      </div>
+      <div class="sec-item">
+        <span class="sec-item__num">05</span>
+        <h3>Bastion over public RDP/SSH</h3>
+        <p>Azure Bastion provides browser-based RDP/SSH over TLS without ever exposing a public IP on the VM itself.</p>
+      </div>
+      <div class="sec-item">
+        <span class="sec-item__num">06</span>
+        <h3>NSG flow logs</h3>
+        <p>Capture accepted/denied traffic at the network layer for forensics — the first thing an incident review asks for and the first thing teams forget to enable.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ U9: DECISION GUIDE ============ -->
+  <section class="u-section" id="decision">
+    <div class="u-section__head">
+      <span class="u-tag u-tag--lg">U9</span>
+      <h2>Decision guide — VM, or something else?</h2>
+      <p class="u-section__dek">A VM is the right answer when you need OS-level control. It's the wrong answer when a managed service would do the same job with less to operate.</p>
+    </div>
+
+    <div class="decision-table-wrap">
+      <table class="decision-table">
+        <thead><tr><th>If you need…</th><th>Reach for</th><th>Not a VM, because…</th></tr></thead>
+        <tbody>
+          <tr><td>Full OS control, custom drivers, legacy app dependencies</td><td><strong>Virtual Machine</strong></td><td>—</td></tr>
+          <tr><td>Run containers without managing orchestration</td><td>Azure Container Apps / ACI</td><td>You'd be patching an OS just to run Docker</td></tr>
+          <tr><td>Kubernetes at scale, custom networking/CNI</td><td>Azure Kubernetes Service</td><td>AKS manages the control plane and node patching for you</td></tr>
+          <tr><td>Run code on events, no idle cost</td><td>Azure Functions</td><td>Paying for a VM to sit idle between triggers is waste</td></tr>
+          <tr><td>Managed relational/NoSQL database</td><td>Azure SQL DB / Cosmos DB</td><td>You'd own backup, patching, and HA logic the PaaS already solved</td></tr>
+          <tr><td>Static site or simple web app</td><td>Azure App Service / Static Web Apps</td><td>No OS-level need; PaaS deploy is faster and cheaper to run</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="closing-strip">
+      <p>The architect's question is never "can a VM do this" — it almost always can. It's "does this workload need the control a VM gives you, badly enough to also own everything that control costs."</p>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <p>Reference compiled for Azure VM fundamentals — IaaS compute, sizing, scaling, storage, networking, availability, pricing, and security. Specs and pricing models reflect general Azure platform behavior; always verify current SKU availability and pricing for your target region in the Azure portal.</p>
+  </footer>
+
+</main>
+
+<script>
+// ============================================
+// CONSOLE TYPING SEQUENCE
+// ============================================
+const consoleLines = [
+  { text: '$ az vm create \\', cls: 'cmd' },
+  { text: '    --resource-group rg-prod-eastus \\', cls: 'cmd' },
+  { text: '    --name vm-app-01 \\', cls: 'cmd' },
+  { text: '    --image Ubuntu2404 \\', cls: 'cmd' },
+  { text: '    --size Standard_D4s_v5 \\', cls: 'cmd' },
+  { text: '    --zone 1 \\', cls: 'cmd' },
+  { text: '    --generate-ssh-keys', cls: 'cmd' },
+  { text: '', cls: 'dim' },
+  { text: 'Provisioning...', cls: 'dim' },
+  { text: '✓ VM "vm-app-01" created', cls: 'ok' },
+  { text: '', cls: 'dim' },
+  { text: '  size       : Standard_D4s_v5  (4 vCPU · 16 GiB RAM)', cls: 'key' },
+  { text: '  zone       : 1', cls: 'key' },
+  { text: '  privateIp  : 10.0.1.4', cls: 'key' },
+  { text: '  publicIp   : —  (none assigned)', cls: 'key' },
+  { text: '  osDisk     : Premium_LRS, 30 GiB', cls: 'key' },
+  { text: '', cls: 'dim' },
+  { text: '$ ', cls: 'cmd' },
+];
+
+function typeConsole() {
+  const el = document.getElementById('consoleBody');
+  if (!el) return;
+  let lineIdx = 0;
+  let charIdx = 0;
+  let html = '';
+
+  function step() {
+    if (lineIdx >= consoleLines.length) {
+      el.innerHTML = html + '<span class="console__cursor"></span>';
+      return;
+    }
+    const line = consoleLines[lineIdx];
+    if (charIdx === 0 && line.text === '') {
+      html += '\n';
+      lineIdx++;
+      step();
+      return;
+    }
+    if (charIdx <= line.text.length) {
+      const partial = line.text.slice(0, charIdx);
+      el.innerHTML = html + `<span class="${line.cls}">${escapeHtml(partial)}</span><span class="console__cursor"></span>`;
+      charIdx++;
+      const speed = line.cls === 'cmd' ? 14 : 6;
+      setTimeout(step, speed);
+    } else {
+      html += `<span class="${line.cls}">${escapeHtml(line.text)}</span>\n`;
+      lineIdx++;
+      charIdx = 0;
+      const pause = line.text === '' ? 80 : 90;
+      setTimeout(step, pause);
+    }
+  }
+  step();
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// ============================================
+// VM FAMILY DATA + FILTER
+// ============================================
+const families = [
+  { letter: 'B', name: 'B-series', desc: 'Burstable — banks CPU credits for spiky, low-average workloads', tags: ['general'] },
+  { letter: 'D', name: 'D-series', desc: 'Balanced CPU:memory ratio — the default for most app servers', tags: ['general'] },
+  { letter: 'A', name: 'A-series', desc: 'Entry-level economy — dev/test and minimal background tasks', tags: ['general'] },
+  { letter: 'F', name: 'F-series', desc: 'High CPU:memory ratio — batch processing, gaming, CI runners', tags: ['compute'] },
+  { letter: 'H', name: 'H-series', desc: 'HPC-class — tightly-coupled simulation, CFD, weather modeling', tags: ['compute'] },
+  { letter: 'E', name: 'E-series', desc: 'High memory:CPU ratio — relational DBs, in-memory caches', tags: ['memory'] },
+  { letter: 'M', name: 'M-series', desc: 'Massive memory — SAP HANA, up to multiple TiB of RAM', tags: ['memory'] },
+  { letter: 'L', name: 'L-series', desc: 'High local NVMe throughput — NoSQL, big data, data warehousing', tags: ['storage'] },
+  { letter: 'N', name: 'N-series', desc: 'GPU-accelerated — ML training/inference, visualization, CUDA', tags: ['gpu'] },
+  { letter: 'NV', name: 'NV-series', desc: 'GPU for graphics — remote visualization, virtual desktops', tags: ['gpu'] },
+];
+
+function renderFamilies() {
+  const grid = document.getElementById('familyGrid');
+  if (!grid) return;
+  grid.innerHTML = families.map(f => `
+    <div class="family-card" data-tags="${f.tags.join(',')}">
+      <span class="family-card__letter">${f.letter}</span>
+      <h3>${f.name}</h3>
+      <p>${f.desc}</p>
+    </div>
+  `).join('');
+}
+
+function setupFilter() {
+  const bar = document.getElementById('filterBar');
+  if (!bar) return;
+  bar.addEventListener('click', (e) => {
+    const btn = e.target.closest('.filter-chip');
+    if (!btn) return;
+    bar.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('is-active'));
+    btn.classList.add('is-active');
+    const filter = btn.dataset.filter;
+    document.querySelectorAll('.family-card').forEach(card => {
+      const tags = card.dataset.tags.split(',');
+      const match = filter === 'all' || tags.includes(filter);
+      card.classList.toggle('is-dimmed', !match);
+    });
+  });
+}
+
+// ============================================
+// NETWORK DIAGRAM (SVG)
+// ============================================
+function renderNetDiagram() {
+  const el = document.getElementById('netDiagram');
+  if (!el) return;
+  el.innerHTML = `
+  <svg viewBox="0 0 980 320" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L6,3 L0,6 Z" fill="#6B7A8E"/>
+      </marker>
+    </defs>
+    <!-- Internet -->
+    <g>
+      <rect x="20" y="30" width="120" height="50" rx="8" fill="none" stroke="#FFB900" stroke-width="2"/>
+      <text x="80" y="60" text-anchor="middle" fill="#FFB900" font-family="IBM Plex Mono, monospace" font-size="13">Internet</text>
+    </g>
+    <line x1="80" y1="80" x2="80" y2="130" stroke="#6B7A8E" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <!-- Load Balancer -->
+    <rect x="20" y="130" width="120" height="50" rx="8" fill="#1C2B3F" stroke="#2A3B52" stroke-width="2"/>
+    <text x="80" y="160" text-anchor="middle" fill="#E8ECF1" font-family="IBM Plex Mono, monospace" font-size="12.5">Load Balancer</text>
+
+    <!-- VNet box -->
+    <rect x="200" y="20" width="740" height="280" rx="14" fill="none" stroke="#2A3B52" stroke-width="2" stroke-dasharray="6 4"/>
+    <text x="220" y="44" fill="#6B7A8E" font-family="IBM Plex Mono, monospace" font-size="13">Virtual Network — 10.0.0.0/16</text>
+
+    <!-- NSG label -->
+    <rect x="220" y="60" width="700" height="42" rx="6" fill="rgba(255,185,0,0.08)" stroke="#FFB900" stroke-width="1.5"/>
+    <text x="240" y="86" fill="#FFB900" font-family="IBM Plex Mono, monospace" font-size="12">Network Security Group — default deny inbound from Internet</text>
+
+    <!-- Subnet -->
+    <rect x="240" y="120" width="660" height="160" rx="10" fill="rgba(0,120,212,0.06)" stroke="#0078D4" stroke-width="1.5"/>
+    <text x="260" y="144" fill="#2B96E8" font-family="IBM Plex Mono, monospace" font-size="12.5">Subnet — 10.0.1.0/24</text>
+
+    <!-- VM boxes -->
+    ${[0,1,2].map(i => `
+      <g transform="translate(${280 + i*200}, 165)">
+        <rect width="160" height="100" rx="8" fill="#131D2E" stroke="#2A3B52" stroke-width="2"/>
+        <circle cx="24" cy="24" r="6" fill="#28C840"/>
+        <text x="40" y="29" fill="#E8ECF1" font-family="IBM Plex Mono, monospace" font-size="12.5">vm-app-0${i+1}</text>
+        <text x="16" y="55" fill="#6B7A8E" font-family="IBM Plex Mono, monospace" font-size="11">NIC · 10.0.1.${4+i}</text>
+        <text x="16" y="74" fill="#6B7A8E" font-family="IBM Plex Mono, monospace" font-size="11">Accelerated networking: on</text>
+      </g>
+    `).join('')}
+
+    <!-- LB to subnet lines -->
+    <line x1="140" y1="155" x2="240" y2="200" stroke="#6B7A8E" stroke-width="2" marker-end="url(#arrow)"/>
+  </svg>
+  `;
+}
+
+// ============================================
+// NAV: scrollspy + mobile toggle
+// ============================================
+function setupNav() {
+  const links = document.querySelectorAll('.rack-nav__link');
+  const sections = Array.from(links).map(l => document.querySelector(l.getAttribute('href')));
+
+  function onScroll() {
+    let activeIdx = 0;
+    sections.forEach((sec, i) => {
+      if (sec && sec.getBoundingClientRect().top <= 140) activeIdx = i;
+    });
+    links.forEach((l, i) => l.classList.toggle('is-active', i === activeIdx));
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  const toggle = document.getElementById('navToggle');
+  if (toggle) {
+    toggle.addEventListener('click', () => {
+      document.body.classList.toggle('nav-open');
+      const expanded = document.body.classList.contains('nav-open');
+      toggle.setAttribute('aria-expanded', expanded);
+    });
+  }
+
+  // close mobile nav after clicking a link
+  links.forEach(l => l.addEventListener('click', () => {
+    document.body.classList.remove('nav-open');
+  }));
+}
+
+// ============================================
+// INIT
+// ============================================
+document.addEventListener('DOMContentLoaded', () => {
+  typeConsole();
+  renderFamilies();
+  setupFilter();
+  renderNetDiagram();
+  setupNav();
+});
+
+</script>
+</body>
+</html>

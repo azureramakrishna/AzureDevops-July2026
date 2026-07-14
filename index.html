@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Azure Storage — End to End | Architecture Reference</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --bg:        #0B0F1A;
+    --bg-raised: #111726;
+    --panel:     #1B2333;
+    --panel-2:   #161D2C;
+    --line:      #2A3548;
+    --line-soft: #1E2738;
+    --text:      #E8ECF4;
+    --text-dim:  #94A3B8;
+    --text-faint:#5B6B85;
+    --blue:      #3B82F6;
+    --blue-2:    #0EA5E9;
+    --amber:     #F59E0B;
+    --green:     #34D399;
+    --red:       #F87171;
+    --display: 'Space Grotesk', sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'Inter', -apple-system, sans-serif;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image:
+      radial-gradient(circle at 10% 0%, rgba(59,130,246,0.07), transparent 35%),
+      radial-gradient(circle at 95% 30%, rgba(14,165,233,0.05), transparent 40%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  a{color:var(--blue-2); text-decoration:none;}
+  code, .mono{font-family:var(--mono);}
+  ::selection{background:rgba(59,130,246,0.3); color:#fff;}
+
+  ::-webkit-scrollbar{width:10px;}
+  ::-webkit-scrollbar-track{background:var(--bg);}
+  ::-webkit-scrollbar-thumb{background:var(--line); border-radius:0;}
+  ::-webkit-scrollbar-thumb:hover{background:var(--text-faint);}
+
+  /* ============ TOP NAV ============ */
+  .topnav{
+    position:sticky; top:0; z-index:60;
+    background:rgba(11,15,26,0.88);
+    backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--line-soft);
+  }
+  .topnav-inner{
+    max-width:1180px; margin:0 auto;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 32px;
+  }
+  .brand{display:flex; align-items:center; gap:10px;}
+  .brand-mark{
+    width:26px; height:26px;
+    background:linear-gradient(135deg, var(--blue), var(--blue-2));
+    border-radius:6px;
+    flex-shrink:0;
+  }
+  .brand-text{font-family:var(--display); font-weight:600; font-size:15px; letter-spacing:-0.01em;}
+  .brand-text span{color:var(--text-faint); font-weight:400;}
+
+  .navlinks{display:flex; gap:4px; flex-wrap:wrap;}
+  .navlinks a{
+    font-size:12.5px;
+    color:var(--text-dim);
+    padding:7px 12px;
+    border-radius:6px;
+    transition:background .15s, color .15s;
+    white-space:nowrap;
+  }
+  .navlinks a:hover{background:var(--panel); color:var(--text);}
+  .navlinks a.active{color:var(--blue-2); background:rgba(59,130,246,0.1);}
+
+  .menu-toggle{
+    display:none;
+    width:38px; height:38px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:8px;
+    align-items:center; justify-content:center;
+    color:var(--text);
+    cursor:pointer;
+  }
+
+  @media (max-width:980px){
+    .navlinks{
+      position:fixed; top:64px; left:0; right:0;
+      flex-direction:column;
+      background:var(--bg-raised);
+      border-bottom:1px solid var(--line);
+      padding:10px 16px 18px;
+      max-height:0; overflow:hidden;
+      transition:max-height .25s ease;
+    }
+    .navlinks.open{max-height:600px;}
+    .menu-toggle{display:flex;}
+  }
+
+  main{position:relative; z-index:1;}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 32px;}
+  @media (max-width:640px){.wrap{padding:0 20px;}}
+
+  /* ============ HERO ============ */
+  .hero{
+    padding:96px 0 70px;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .hero-eyebrow{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--blue-2);
+    text-transform:uppercase;
+    letter-spacing:.1em;
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:20px;
+  }
+  .hero-eyebrow::before{content:""; width:24px; height:1px; background:var(--blue-2);}
+
+  .hero h1{
+    font-family:var(--display);
+    font-size:54px;
+    font-weight:700;
+    letter-spacing:-0.03em;
+    line-height:1.08;
+    max-width:760px;
+    margin-bottom:22px;
+  }
+  .hero h1 .grad{
+    background:linear-gradient(100deg, var(--blue), var(--blue-2));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+
+  .hero-dek{
+    font-size:17px;
+    color:var(--text-dim);
+    max-width:640px;
+    margin-bottom:36px;
+  }
+  .hero-dek strong{color:var(--text); font-weight:600;}
+
+  .hero-stats{
+    display:flex; gap:0;
+    border:1px solid var(--line);
+    border-radius:12px;
+    overflow:hidden;
+    max-width:760px;
+  }
+  .hstat{
+    flex:1;
+    padding:18px 20px;
+    border-right:1px solid var(--line);
+  }
+  .hstat:last-child{border-right:none;}
+  .hstat .n{font-family:var(--display); font-size:24px; font-weight:700; color:var(--blue-2);}
+  .hstat .l{font-size:11.5px; color:var(--text-faint); margin-top:4px; text-transform:uppercase; letter-spacing:.05em;}
+
+  @media (max-width:760px){
+    .hero h1{font-size:36px;}
+    .hero-stats{flex-wrap:wrap;}
+    .hstat{flex:1 1 50%; border-bottom:1px solid var(--line);}
+  }
+
+  /* ============ ACCOUNT ANATOMY DIAGRAM (signature) ============ */
+  .anatomy{
+    margin:60px 0 0;
+    border:1px solid var(--line);
+    border-radius:16px;
+    background:linear-gradient(180deg, var(--panel-2), var(--bg-raised));
+    padding:36px;
+    overflow-x:auto;
+  }
+  .anatomy-label{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--text-faint);
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    margin-bottom:18px;
+  }
+  .acct-box{
+    border:1.5px solid var(--blue);
+    border-radius:14px;
+    padding:24px;
+    background:rgba(59,130,246,0.04);
+    min-width:780px;
+  }
+  .acct-box-head{
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:20px;
+  }
+  .acct-box-head .dot{width:9px; height:9px; border-radius:50%; background:var(--blue);}
+  .acct-box-head h4{font-family:var(--display); font-size:16px; font-weight:600;}
+  .acct-box-head .uri{font-family:var(--mono); font-size:11.5px; color:var(--text-faint);}
+
+  .svc-row{display:grid; grid-template-columns:repeat(4,1fr); gap:14px;}
+  .svc-card{
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:16px;
+    background:var(--bg-raised);
+  }
+  .svc-card .svc-name{font-family:var(--display); font-size:14px; font-weight:600; margin-bottom:6px;}
+  .svc-card .svc-sub{font-family:var(--mono); font-size:10.5px; color:var(--blue-2); margin-bottom:10px;}
+  .svc-card ul{list-style:none; font-size:11.5px; color:var(--text-dim);}
+  .svc-card li{padding:3px 0; padding-left:12px; position:relative;}
+  .svc-card li::before{content:"·"; position:absolute; left:0; color:var(--text-faint);}
+
+  /* ============ SECTION SCAFFOLD ============ */
+  section.topic{
+    padding:80px 0;
+    border-bottom:1px solid var(--line-soft);
+  }
+  section.topic:last-of-type{border-bottom:none;}
+
+  .topic-head{margin-bottom:36px; max-width:760px;}
+  .topic-eyebrow{
+    font-family:var(--mono);
+    font-size:11.5px;
+    color:var(--blue-2);
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    margin-bottom:12px;
+  }
+  .topic-head h2{
+    font-family:var(--display);
+    font-size:32px;
+    font-weight:700;
+    letter-spacing:-0.02em;
+    margin-bottom:14px;
+  }
+  .topic-dek{color:var(--text-dim); font-size:15.5px;}
+
+  .prose{color:var(--text-dim); font-size:15px; margin:16px 0; max-width:760px;}
+  .prose strong{color:var(--text); font-weight:600;}
+  .prose code{
+    background:var(--panel);
+    border:1px solid var(--line);
+    padding:1.5px 6px;
+    border-radius:4px;
+    font-size:13px;
+    color:var(--amber);
+  }
+
+  /* ============ CARD GRID ============ */
+  .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:24px 0;}
+  .grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin:24px 0;}
+  .grid-4{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin:24px 0;}
+  @media (max-width:900px){.grid-3{grid-template-columns:1fr 1fr;} .grid-4{grid-template-columns:1fr 1fr;}}
+  @media (max-width:640px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr;}}
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:22px;
+    transition:border-color .15s, transform .15s;
+  }
+  .card:hover{border-color:var(--blue); transform:translateY(-2px);}
+  .card .c-icon{
+    width:36px; height:36px;
+    border-radius:9px;
+    background:linear-gradient(135deg, rgba(59,130,246,0.18), rgba(14,165,233,0.1));
+    border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--display); font-weight:700; font-size:14px; color:var(--blue-2);
+    margin-bottom:14px;
+  }
+  .card h3{font-family:var(--display); font-size:16px; font-weight:600; margin-bottom:8px;}
+  .card p{font-size:13.5px; color:var(--text-dim); line-height:1.6;}
+  .card .tag{
+    display:inline-block;
+    font-family:var(--mono); font-size:10px;
+    color:var(--text-faint);
+    border:1px solid var(--line);
+    padding:2px 8px; border-radius:20px;
+    margin-top:12px;
+    text-transform:uppercase; letter-spacing:.04em;
+  }
+
+  /* ============ REDUNDANCY MAP (signature 2) ============ */
+  .redundancy-map{
+    margin:30px 0;
+    border:1px solid var(--line);
+    border-radius:16px;
+    background:var(--panel-2);
+    padding:40px;
+  }
+  .rmap-grid{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:18px;
+  }
+  @media (max-width:900px){.rmap-grid{grid-template-columns:1fr 1fr;}}
+  @media (max-width:560px){.rmap-grid{grid-template-columns:1fr;}}
+
+  .rmap-tier{
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:18px;
+    background:var(--bg-raised);
+    position:relative;
+  }
+  .rmap-tier .rings{
+    width:64px; height:64px;
+    margin:0 auto 14px;
+    position:relative;
+  }
+  .ring{
+    position:absolute; border-radius:50%;
+    border:2px solid var(--blue);
+    top:50%; left:50%; transform:translate(-50%,-50%);
+  }
+  .rmap-tier .code{
+    font-family:var(--display); font-weight:700; font-size:18px;
+    text-align:center; color:var(--blue-2); margin-bottom:4px;
+  }
+  .rmap-tier .name{font-size:11px; color:var(--text-faint); text-align:center; margin-bottom:12px; text-transform:uppercase; letter-spacing:.04em;}
+  .rmap-tier .desc{font-size:12.5px; color:var(--text-dim); text-align:center; line-height:1.55;}
+  .rmap-tier .durability{
+    margin-top:12px; padding-top:12px; border-top:1px solid var(--line-soft);
+    font-family:var(--mono); font-size:11px; color:var(--green); text-align:center;
+  }
+
+  /* ============ COMPARE TABLE ============ */
+  .ref-table{width:100%; border-collapse:collapse; margin:20px 0; font-size:13.5px;}
+  .ref-table th{
+    text-align:left; font-family:var(--mono); font-size:10.5px;
+    text-transform:uppercase; letter-spacing:.05em; color:var(--text-faint);
+    padding:11px 14px; border-bottom:1px solid var(--line); background:var(--panel-2);
+  }
+  .ref-table td{padding:12px 14px; border-bottom:1px solid var(--line-soft); color:var(--text-dim); vertical-align:top;}
+  .ref-table td:first-child{font-family:var(--mono); color:var(--blue-2); white-space:nowrap; font-weight:500;}
+  .ref-table tr:hover td{background:var(--panel-2);}
+
+  /* ============ TIER LADDER ============ */
+  .tier-ladder{display:flex; flex-direction:column; gap:10px; margin:24px 0;}
+  .tier-row{
+    display:grid; grid-template-columns:140px 1fr 110px;
+    align-items:center; gap:18px;
+    border:1px solid var(--line); border-radius:10px;
+    padding:16px 20px; background:var(--panel);
+  }
+  .tier-row .tname{font-family:var(--display); font-weight:600; font-size:15px;}
+  .tier-row .tdesc{font-size:13px; color:var(--text-dim);}
+  .tier-row .tcost{font-family:var(--mono); font-size:12px; text-align:right;}
+  .tier-row.hot .tname{color:#F87171;}
+  .tier-row.cool .tname{color:var(--blue-2);}
+  .tier-row.cold .tname{color:#818CF8;}
+  .tier-row.archive .tname{color:var(--text-faint);}
+  @media (max-width:680px){
+    .tier-row{grid-template-columns:1fr; gap:6px;}
+    .tier-row .tcost{text-align:left;}
+  }
+
+  /* ============ CODE BLOCK ============ */
+  .code-block{
+    background:var(--bg-raised);
+    border:1px solid var(--line);
+    border-radius:10px;
+    overflow:hidden;
+    margin:18px 0;
+  }
+  .code-block .cb-head{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:10px 16px; background:var(--panel-2); border-bottom:1px solid var(--line);
+    font-family:var(--mono); font-size:11px; color:var(--text-faint);
+  }
+  .code-block pre{
+    padding:16px 18px;
+    overflow-x:auto;
+    font-family:var(--mono);
+    font-size:12.5px;
+    line-height:1.7;
+    color:var(--text-dim);
+  }
+  .code-block .k{color:var(--blue-2);}
+  .code-block .s{color:var(--amber);}
+  .code-block .c{color:var(--text-faint);}
+
+  /* ============ CALLOUTS ============ */
+  .callout{
+    display:flex; gap:14px; padding:18px 20px; border-radius:12px;
+    margin:22px 0; border:1px solid; font-size:13.5px; max-width:820px;
+  }
+  .callout .ic{font-family:var(--mono); font-weight:700; flex-shrink:0; font-size:11px; text-transform:uppercase; letter-spacing:.04em;}
+  .callout.tip{background:rgba(59,130,246,0.06); border-color:#1E3A6E; color:var(--text-dim);}
+  .callout.tip .ic{color:var(--blue-2);}
+  .callout.warn{background:rgba(245,158,11,0.06); border-color:#6B5328; color:var(--text-dim);}
+  .callout.warn .ic{color:var(--amber);}
+  .callout.danger{background:rgba(248,113,113,0.06); border-color:#6B2F25; color:var(--text-dim);}
+  .callout.danger .ic{color:var(--red);}
+  .callout strong{color:var(--text);}
+
+  /* ============ SECURITY LAYERS ============ */
+  .sec-layers{display:flex; flex-direction:column; gap:0; margin:26px 0; max-width:820px;}
+  .sec-layer{
+    border:1px solid var(--line);
+    padding:18px 22px;
+    background:var(--panel);
+    position:relative;
+  }
+  .sec-layer:first-child{border-radius:12px 12px 0 0;}
+  .sec-layer:last-child{border-radius:0 0 12px 12px;}
+  .sec-layer:not(:last-child){border-bottom:none;}
+  .sec-layer .sl-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;}
+  .sec-layer .sl-name{font-family:var(--display); font-weight:600; font-size:14.5px;}
+  .sec-layer .sl-tag{font-family:var(--mono); font-size:10px; color:var(--text-faint); text-transform:uppercase;}
+  .sec-layer p{font-size:13px; color:var(--text-dim);}
+
+  /* ============ ARCHITECTURE PATTERNS ============ */
+  .pattern-card{
+    border:1px solid var(--line); border-radius:12px;
+    padding:24px; background:var(--panel); margin:18px 0;
+  }
+  .pattern-card h4{font-family:var(--display); font-size:16px; margin-bottom:10px;}
+  .pattern-flow{
+    font-family:var(--mono); font-size:12.5px; color:var(--blue-2);
+    padding:12px 16px; background:var(--bg-raised); border-radius:8px; margin:12px 0;
+    border:1px solid var(--line-soft);
+  }
+  .pattern-card p{font-size:13.5px; color:var(--text-dim);}
+
+  /* ============ CHEATSHEET ============ */
+  .cheatsheet{
+    background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:36px; margin:30px 0;
+  }
+  .cheat-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:26px;}
+  @media (max-width:860px){.cheat-grid{grid-template-columns:1fr 1fr;}}
+  @media (max-width:560px){.cheat-grid{grid-template-columns:1fr;}}
+  .cheat-col h5{
+    font-family:var(--display); font-size:13px; color:var(--blue-2);
+    text-transform:uppercase; letter-spacing:.05em; margin-bottom:14px; padding-bottom:10px;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .cheat-col .item{font-size:12.5px; padding:5px 0; color:var(--text-dim); display:flex; justify-content:space-between; gap:8px;}
+  .cheat-col .item b{color:var(--text); font-weight:600; font-family:var(--mono); font-size:11.5px;}
+
+  /* ============ FOOTER ============ */
+  footer{border-top:1px solid var(--line-soft); padding:48px 0; text-align:center;}
+  footer p{font-size:12.5px; color:var(--text-faint);}
+
+  .totop{
+    position:fixed; bottom:24px; right:24px; width:44px; height:44px; border-radius:50%;
+    background:var(--panel); border:1px solid var(--line); color:var(--blue-2);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:50;
+  }
+  .totop.show{opacity:1; pointer-events:auto;}
+  .totop:hover{transform:translateY(-3px); border-color:var(--blue);}
+
+  @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto;}}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-inner">
+    <div class="brand">
+      <div class="brand-mark"></div>
+      <div class="brand-text">Azure Storage <span>· end to end</span></div>
+    </div>
+    <div class="menu-toggle" id="menuToggle">☰</div>
+    <div class="navlinks" id="navLinks">
+      <a href="#overview" class="node">Overview</a>
+      <a href="#services" class="node">Services</a>
+      <a href="#redundancy" class="node">Redundancy</a>
+      <a href="#tiers" class="node">Access Tiers</a>
+      <a href="#security" class="node">Security</a>
+      <a href="#networking" class="node">Networking</a>
+      <a href="#lifecycle" class="node">Lifecycle</a>
+      <a href="#performance" class="node">Performance</a>
+      <a href="#patterns" class="node">Patterns</a>
+      <a href="#monitoring" class="node">Monitoring</a>
+      <a href="#pricing" class="node">Pricing</a>
+      <a href="#cheatsheet" class="node">Cheatsheet</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+  <!-- ============ HERO ============ -->
+  <section class="hero" id="overview">
+    <div class="wrap">
+      <div class="hero-eyebrow">Architecture Reference</div>
+      <h1>Azure Storage,<br>from <span class="grad">account to byte</span>.</h1>
+      <p class="hero-dek">
+        Every Azure workload eventually writes a byte to disk somewhere — and almost always, that somewhere
+        is a <strong>storage account</strong>. This reference covers the full surface: the four core services,
+        replication geography, access tiers, security boundaries, networking, lifecycle automation,
+        and the architecture patterns built on top of it.
+      </p>
+
+      <div class="hero-stats">
+        <div class="hstat"><div class="n">4</div><div class="l">Core Services</div></div>
+        <div class="hstat"><div class="n">6</div><div class="l">Redundancy Options</div></div>
+        <div class="hstat"><div class="n">4</div><div class="l">Access Tiers</div></div>
+        <div class="hstat"><div class="n">99.999999999%</div><div class="l">LRS Durability</div></div>
+      </div>
+
+      <!-- ============ ANATOMY DIAGRAM (signature) ============ -->
+      <div class="anatomy">
+        <div class="anatomy-label">// the shape of a storage account</div>
+        <div class="acct-box">
+          <div class="acct-box-head">
+            <div class="dot"></div>
+            <h4>Storage Account</h4>
+            <span class="uri">mystorageacct.core.windows.net</span>
+          </div>
+          <div class="svc-row">
+            <div class="svc-card">
+              <div class="svc-name">Blob</div>
+              <div class="svc-sub">.blob.core.windows.net</div>
+              <ul>
+                <li>Containers</li>
+                <li>Block / Page / Append blobs</li>
+                <li>Unstructured object data</li>
+              </ul>
+            </div>
+            <div class="svc-card">
+              <div class="svc-name">Files</div>
+              <div class="svc-sub">.file.core.windows.net</div>
+              <ul>
+                <li>SMB / NFS shares</li>
+                <li>Lift-and-shift file servers</li>
+                <li>Mountable like a network drive</li>
+              </ul>
+            </div>
+            <div class="svc-card">
+              <div class="svc-name">Queue</div>
+              <div class="svc-sub">.queue.core.windows.net</div>
+              <ul>
+                <li>Async messaging</li>
+                <li>Decouple app components</li>
+                <li>At-least-once delivery</li>
+              </ul>
+            </div>
+            <div class="svc-card">
+              <div class="svc-name">Table</div>
+              <div class="svc-sub">.table.core.windows.net</div>
+              <ul>
+                <li>NoSQL key-value store</li>
+                <li>Schemaless entities</li>
+                <li>Now under Cosmos DB Table API</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SERVICES ============ -->
+  <section class="topic" id="services">
+    <div class="wrap">
+      <div class="topic-head">
+        <div class="topic-eyebrow">01 · Core Services</div>
+        <h2>Four services, one account</h2>
+        <p class="topic-dek">A storage account is the billing and security boundary. Inside it, four distinct data services solve four distinct problems — picking the wrong one is the most common Azure Storage architecture mistake.</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="c-icon">B</div>
+          <h3>Blob Storage</h3>
+          <p>Object storage for unstructured data — images, video, backups, logs, data lake files. Three blob types: <strong>block blobs</strong> (general files, uploaded in chunks), <strong>append blobs</strong> (optimized for sequential writes like logs), and <strong>page blobs</strong> (random read/write — what Azure VM disks are built on).</p>
+          <span class="tag">REST · SDK · Data Lake Gen2</span>
+        </div>
+        <div class="card">
+          <div class="c-icon">F</div>
+          <h3>Azure Files</h3>
+          <p>Fully managed SMB and NFS file shares. Mount it on Windows, Linux, or macOS exactly like a network drive. The default answer when "lift and shift" means moving an on-prem file server, or when multiple VMs need a shared filesystem.</p>
+          <span class="tag">SMB 3.0 · NFS 4.1 · Azure File Sync</span>
+        </div>
+        <div class="card">
+          <div class="c-icon">Q</div>
+          <h3>Queue Storage</h3>
+          <p>Simple, durable async messaging between application components. A web app enqueues a job; a worker role dequeues and processes it. At-least-once delivery — your consumer must be idempotent or design around duplicate processing.</p>
+          <span class="tag">REST · 64KB msg · 7-day TTL max</span>
+        </div>
+        <div class="card">
+          <div class="c-icon">T</div>
+          <h3>Table Storage</h3>
+          <p>NoSQL key-value store using a PartitionKey/RowKey schema. Schemaless, fast, cheap. Microsoft now recommends new workloads use <strong>Cosmos DB's Table API</strong>, which is wire-compatible but adds global distribution and stronger SLAs.</p>
+          <span class="tag">NoSQL · PartitionKey/RowKey</span>
+        </div>
+      </div>
+
+      <div class="callout tip">
+        <span class="ic">Choosing →</span>
+        <span>Need a network drive multiple VMs mount? <strong>Files</strong>. Storing app-generated objects or images? <strong>Blob</strong>. Decoupling a producer from a consumer? <strong>Queue</strong>. Need a cheap NoSQL lookup table and don't need global distribution? <strong>Table</strong> — otherwise reach for Cosmos DB.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ REDUNDANCY (signature) ============ -->
+  <section class="topic" id="redundancy">
+    <div class="wrap">
+      <div class="topic-head">
+        <div class="topic-eyebrow">02 · Durability</div>
+        <h2>Redundancy &amp; replication geography</h2>
+        <p class="topic-dek">Every storage account replicates your data automatically — the question is how far the copies travel, and what happens if a datacenter, a zone, or an entire region goes dark.</p>
+      </div>
+
+      <div class="redundancy-map">
+        <div class="rmap-grid">
+          <div class="rmap-tier">
+            <div class="rings">
+              <div class="ring" style="width:64px;height:64px;opacity:1;"></div>
+            </div>
+            <div class="code">LRS</div>
+            <div class="name">Locally Redundant</div>
+            <div class="desc">3 copies, one datacenter, one region. Cheapest option — but a datacenter-level disaster takes your data with it.</div>
+            <div class="durability">11 nines / year</div>
+          </div>
+          <div class="rmap-tier">
+            <div class="rings">
+              <div class="ring" style="width:64px;height:64px;opacity:1;"></div>
+              <div class="ring" style="width:44px;height:44px;opacity:0.6;"></div>
+            </div>
+            <div class="code">ZRS</div>
+            <div class="name">Zone Redundant</div>
+            <div class="desc">3 copies across separate availability zones in one region. Survives a full zone outage with no data loss.</div>
+            <div class="durability">12 nines / year</div>
+          </div>
+          <div class="rmap-tier">
+            <div class="rings">
+              <div class="ring" style="width:64px;height:64px;opacity:1;"></div>
+              <div class="ring" style="width:44px;height:44px;opacity:0.6;"></div>
+              <div class="ring" style="width:24px;height:24px;opacity:0.3;"></div>
+            </div>
+            <div class="code">GRS</div>
+            <div class="name">Geo Redundant</div>
+            <div class="desc">LRS in the primary region, plus 3 more async-replicated copies in a paired secondary region hundreds of km away.</div>
+            <div class="durability">16 nines / year</div>
+          </div>
+          <div class="rmap-tier">
+            <div class="rings">
+              <div class="ring" style="width:64px;height:64px;opacity:1;"></div>
+              <div class="ring" style="width:50px;height:50px;opacity:0.7;"></div>
+              <div class="ring" style="width:34px;height:34px;opacity:0.5;"></div>
+              <div class="ring" style="width:18px;height:18px;opacity:0.3;"></div>
+            </div>
+            <div class="code">GZRS</div>
+            <div class="name">Geo-Zone Redundant</div>
+            <div class="desc">ZRS in the primary region plus geo-replication to a secondary region. The strongest standard option — zone <em>and</em> region failure protection together.</div>
+            <div class="durability">16 nines / year</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prose">
+        Append <strong>-RA</strong> to GRS or GZRS (<code>RA-GRS</code>, <code>RA-GZRS</code>) to get read access to the
+        secondary region even while the primary is healthy — useful for read-heavy global apps, not just disaster
+        recovery. Without the RA prefix, the secondary copy exists but isn't readable until Microsoft declares a
+        failover.
+      </div>
+
+      <div class="callout warn">
+        <span class="ic">Exam / Interview angle →</span>
+        <span>Geo-replication is <strong>asynchronous</strong>. During a regional outage, recently written data may not have made it to the secondary yet — your Recovery Point Objective with GRS is typically measured in minutes, not zero. If you need synchronous, zero-data-loss cross-zone durability, that's what ZRS gives you within a single region.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ACCESS TIERS ============ -->
+  <section class="topic" id="tiers">
+    <div class="wrap">
+      <div class="topic-head">
+        <div class="topic-eyebrow">03 · Cost Optimization</div>
+        <h2>Access tiers</h2>
+        <p class="topic-dek">Blob storage pricing trades storage cost against access cost and retrieval latency. Pick the tier that matches how often the data is actually read — not how important it feels.</p>
+      </div>
+
+      <div class="tier-ladder">
+        <div class="tier-row hot">
+          <div class="tname">Hot</div>
+          <div class="tdesc">Optimized for data accessed frequently. Highest storage cost, lowest access cost. Default tier for new accounts.</div>
+          <div class="tcost">ms latency</div>
+        </div>
+        <div class="tier-row cool">
+          <div class="tname">Cool</div>
+          <div class="tdesc">Data accessed infrequently, stored for at least 30 days. Lower storage cost, higher per-access cost than Hot.</div>
+          <div class="tcost">ms latency</div>
+        </div>
+        <div class="tier-row cold">
+          <div class="tname">Cold</div>
+          <div class="tdesc">Rarely accessed data, stored for at least 90 days. Even lower storage cost than Cool, higher retrieval cost.</div>
+          <div class="tcost">ms latency</div>
+        </div>
+        <div class="tier-row archive">
+          <div class="tname">Archive</div>
+          <div class="tdesc">Offline tier for data rarely accessed, stored at least 180 days. Cheapest storage by far — but blobs must be rehydrated before reading.</div>
+          <div class="tcost">hours to retrieve</div>
+        </div>
+      </div>
+
+      <div class="callout danger">
+        <span class="ic">Gotcha →</span>
+        <span>Archive tier blobs aren't instantly readable. Rehydrating moves a blob back to Hot or Cool, taking <strong>up to 15 hours</strong> on standard priority (or under an hour on high priority, at extra cost). Architect around this latency — Archive is for compliance retention and cold backups, not anything in a live request path.</span>
+      </div>
+
+      <div class="prose">
+        Tiers can be set per-blob and changed any time, or automated entirely with <strong>lifecycle management
+        policies</strong> (see below). Early deletion from Cool, Cold, or Archive before the minimum retention
+        window incurs an early-deletion penalty — factor that into any aggressive auto-tiering policy.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SECURITY ============ -->
+  <section class="topic" id="security">
+    <div class="wrap">
+      <div class="topic-head">
+        <div class="topic-eyebrow">04 · Security</div>
+        <h2>Security, layer by layer</h2>
+        <p class="topic-dek">Azure Storage security stacks from the network edge down to the individual request — each layer answers a different question about who can do what.</p>
+      </div>
+
+      <div class="sec-layers">
+        <div class="sec-layer">
+          <div class="sl-head"><span class="sl-name">Network rules &amp; Private Endpoints</span><span class="sl-tag">Perimeter</span></div>
+          <p>Restrict the storage account to specific VNets, IP ranges, or force all traffic through a Private Endpoint with a private IP — removing it from the public internet entirely.</p>
+        </div>
+        <div class="sec-layer">
+          <div class="sl-head"><span class="sl-name">Microsoft Entra ID (RBAC)</span><span class="sl-tag">Identity</span></div>
+          <p>The recommended authorization model. Assign roles like <strong>Storage Blob Data Reader</strong> or <strong>Storage Blob Data Contributor</strong> to users, groups, or managed identities — no secrets to rotate or leak.</p>
+        </div>
+        <div class="sec-layer">
+          <div class="sl-head"><span class="sl-name">Shared Access Signatures (SAS)</span><span class="sl-tag">Delegated access</span></div>
+          <p>Time-bound, permission-scoped URLs for granting temporary access without sharing account keys — e.g. a browser uploading directly to a container. Always set the shortest practical expiry.</p>
+        </div>
+        <div class="sec-layer">
+          <div class="sl-head"><span class="sl-name">Account Keys</span><span class="sl-tag">Root credential</span></div>
+          <p>Full control over the entire account. Treat exactly like a root password — store in Key Vault, never in code, and rotate regularly. Disable key-based auth entirely on accounts that don't need it.</p>
+        </div>
+        <div class="sec-layer">
+          <div class="sl-head"><span class="sl-name">Encryption at Rest</span><span class="sl-tag">Always on</span></div>
+          <p>Storage Service Encryption (SSE) encrypts every byte automatically with AES-256, with no way to disable it. Use Microsoft-managed keys by default, or customer-managed keys in Key Vault for compliance needs.</p>
+        </div>
+        <div class="sec-layer">
+          <div class="sl-head"><span class="sl-name">Encryption in Transit</span><span class="sl-tag">Always on</span></div>
+          <p>"Secure transfer required" enforces HTTPS for REST calls and SMB 3.0 encryption for Azure Files, rejecting any unencrypted connection attempt outright.</p>
+        </div>
+      </div>
+
+      <div class="callout tip">
+        <span class="ic">Best practice →</span>
+        <span>The modern recommended posture: disable shared key (account key) access, require Entra ID RBAC for everything, route traffic through Private Endpoints, and issue user-delegation SAS tokens (which are themselves backed by Entra ID, not account keys) for any delegated/temporary access.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ NETWORKING ============ -->
+  <section class="topic" id="networking">
+    <div class="wrap">
+      <div class="topic-head">
+        <div class="topic-eyebrow">05 · Networking</div>
+        <h2>Network access paths</h2>
+        <p class="topic-dek">Three distinct ways traffic reaches a storage account — each with a different security and latency profile.</p>
+      </div>
+
+      <table class="ref-table">
+        <tr><th>Path</th><th>How it works</th><th>Use when</th></tr>
+        <tr>
+          <td>Public endpoint</td>
+          <td>Default. Account reachable over the internet, optionally locked down with firewall IP/VNet rules.</td>
+          <td>Quick prototyping, or public content like a static website / CDN origin.</td>
+        </tr>
+        <tr>
+          <td>Service Endpoint</td>
+          <td>Extends a VNet's identity to the storage account over the Azure backbone — traffic never leaves Microsoft's network, but the account still has a public IP.</td>
+          <td>Simple VNet-restricted access without the cost of Private Link.</td>
+        </tr>
+        <tr>
+          <td>Private Endpoint</td>
+          <td>Provisions a NIC with a private IP inside your VNet, mapped via Private Link directly to the storage account. No public IP exposure at all.</td>
+          <td>Production workloads, compliance requirements, zero public attack surface.</td>
+        </tr>
+      </table>
+
+      <div class="callout warn">
+        <span class="ic">Common misconfiguration →</span>
+        <span>Enabling a Private Endpoint does <strong>not</strong> automatically disable the public endpoint — you must explicitly set "Public network access" to disabled, or the storage account remains reachable both ways. Many security audits flag exactly this gap.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LIFECYCLE ============ -->
+  <section class="topic" id="lifecycle">
+    <div class="wrap">
+      <div class="topic-head">
+        <div class="topic-eyebrow">06 · Automation</div>
+        <h2>Lifecycle management</h2>
+        <p class="topic-dek">Rule-based policies that move or delete blobs automatically based on age — turning manual tiering into a configure-once-and-forget cost control.</p>
+      </div>
+
+      <div class="code-block">
+        <div class="cb-head"><span>lifecycle-policy.json</span><span>blob → cool → archive → delete</span></div>
+        <pre><span class="c">// Move to Cool after 30 days of no access,</span>
+<span class="c">// Archive after 90, delete after 365</span>
+{
+  <span class="s">"rules"</span>: [{
+    <span class="s">"name"</span>: <span class="s">"auto-tier-old-logs"</span>,
+    <span class="s">"type"</span>: <span class="s">"Lifecycle"</span>,
+    <span class="s">"definition"</span>: {
+      <span class="s">"filters"</span>: { <span class="s">"blobTypes"</span>: [<span class="s">"blockBlob"</span>] },
+      <span class="s">"actions"</span>: {
+        <span class="s">"baseBlob"</span>: {
+          <span class="k">"tierToCool"</span>: { <span class="s">"daysAfterModificationGreaterThan"</span>: 30 },
+          <span class="k">"tierToArchive"</span>: { <span class="s">"daysAfterModificationGreaterThan"</span>: 90 },
+          <span class="k">"delete"</span>: { <span class="s">"daysAfterModificationGreaterThan"</span>: 365 }
+        }
+      }
+    }
+  }]
+}</pre>
+      </div>
+
+      <div class="prose">
+        Policies can target by container prefix, blob name pattern, or last-access time (when access-tracking is
+        enabled) — not just modification date. Combine with <strong>soft delete</strong> and <strong>versioning</strong>
+        for a complete data-protection story: lifecycle policies handle cost, soft delete and versioning handle
+        accidental loss.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PERFORMANCE ============ -->
+  <section class="topic" id="performance">
+    <div class="wrap">
+      <div class="topic-head">
+        <div class="topic-eyebrow">07 · Scalability</div>
+        <h2>Performance &amp; scale limits</h2>
+        <p class="topic-dek">Storage accounts have published scalability targets — hitting them shows up as HTTP 503 throttling, not a graceful slowdown. Design partition keys and request patterns around these limits up front.</p>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="c-icon">⚡</div>
+          <h3>Standard vs Premium</h3>
+          <p>Standard accounts use magnetic/SSD-backed storage at lower cost. Premium accounts run on SSD exclusively, offering consistent low latency — the default choice for high-IOPS page blob workloads like VM disks.</p>
+        </div>
+        <div class="card">
+          <div class="c-icon">∥</div>
+          <h3>Partitioning</h3>
+          <p>Blob storage automatically load-balances by URL path. Hot-partition bottlenecks happen when traffic concentrates on sequential or predictable blob name prefixes — randomize prefixes for high-throughput write patterns.</p>
+        </div>
+        <div class="card">
+          <div class="c-icon">↻</div>
+          <h3>Throttling &amp; retry</h3>
+          <p>Exceeding request-rate or bandwidth limits returns HTTP 503. The Azure SDKs implement exponential backoff with jitter by default — never disable client-side retry logic in production.</p>
+        </div>
+      </div>
+
+      <table class="ref-table">
+        <tr><th>Resource</th><th>Standard account limit</th></tr>
+        <tr><td>Max storage account capacity</td><td>5 PiB (varies by region/account type)</td></tr>
+        <tr><td>Max ingress/egress</td><td>~25 Gbps / ~50 Gbps depending on region (GPv2)</td></tr>
+        <tr><td>Max requests/sec</td><td>20,000 per account (combined services)</td></tr>
+        <tr><td>Max single blob size</td><td>~190.7 TiB (block blob, multi-block)</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ PATTERNS ============ -->
+  <section class="topic" id="patterns">
+    <div class="wrap">
+      <div class="topic-head">
+        <div class="topic-eyebrow">08 · Architecture</div>
+        <h2>Common patterns built on Storage</h2>
+        <p class="topic-dek">Storage rarely stands alone — these are the recurring shapes it takes inside larger Azure architectures.</p>
+      </div>
+
+      <div class="pattern-card">
+        <h4>Static website hosting</h4>
+        <div class="pattern-flow">Browser → Azure CDN / Front Door → $web container (Blob Static Website) </div>
+        <p>Enable the static website feature on a Blob Storage account to serve HTML/CSS/JS directly from the <code>$web</code> container — no VM, no App Service. Pair with Azure CDN or Front Door for global caching and a custom domain with TLS.</p>
+      </div>
+
+      <div class="pattern-card">
+        <h4>Event-driven processing pipeline</h4>
+        <div class="pattern-flow">Blob upload → Event Grid → Azure Function → processed output → Blob / Queue</div>
+        <p>A blob upload fires an Event Grid notification, triggering a Function App to resize an image, parse a file, or kick off a downstream workflow — the backbone of most serverless data-processing pipelines on Azure.</p>
+      </div>
+
+      <div class="pattern-card">
+        <h4>Hybrid file share with Azure File Sync</h4>
+        <div class="pattern-flow">On-prem Windows Server (cache) ⇄ Storage Sync Service ⇄ Azure Files (cloud tier)</div>
+        <p>Keeps a local Windows Server as a fast cache while the authoritative copy and cold data live in Azure Files — classic for branch-office file servers being migrated to the cloud without a disruptive cutover.</p>
+      </div>
+
+      <div class="pattern-card">
+        <h4>Data lake for analytics</h4>
+        <div class="pattern-flow">Ingest (Data Factory) → ADLS Gen2 (hierarchical namespace) → Synapse / Databricks</div>
+        <p>Blob storage with hierarchical namespace enabled becomes Azure Data Lake Storage Gen2 — true directory semantics and POSIX-like ACLs, purpose-built as the ingestion and storage layer for big-data analytics engines.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MONITORING ============ -->
+  <section class="topic" id="monitoring">
+    <div class="wrap">
+      <div class="topic-head">
+        <div class="topic-eyebrow">09 · Observability</div>
+        <h2>Monitoring &amp; diagnostics</h2>
+        <p class="topic-dek">Storage accounts emit rich telemetry by default — the work is wiring it to somewhere you'll actually look during an incident.</p>
+      </div>
+
+      <table class="ref-table">
+        <tr><th>Tool</th><th>Gives you</th></tr>
+        <tr><td>Azure Monitor metrics</td><td>Transactions, ingress/egress, latency, availability — near-real-time, platform-level metrics with no setup.</td></tr>
+        <tr><td>Storage Analytics logging</td><td>Detailed per-request logs: who, what operation, success/failure, latency — written to a <code>$logs</code> container.</td></tr>
+        <tr><td>Diagnostic settings → Log Analytics</td><td>Stream metrics and logs into a Log Analytics workspace for KQL queries, alerting, and dashboards.</td></tr>
+        <tr><td>Azure Advisor</td><td>Automated recommendations — flags accounts missing redundancy upgrades, unused soft-delete, or cost-saving tier moves.</td></tr>
+        <tr><td>Microsoft Defender for Storage</td><td>Threat detection — flags anomalous access patterns, malware uploads, and unusual data exfiltration.</td></tr>
+      </table>
+
+      <div class="callout tip">
+        <span class="ic">Operational tip →</span>
+        <span>Set alerts on <strong>availability</strong> dropping below 99.9% and on <strong>throttling errors</strong> (HTTP 503) — these surface real production impact long before someone files a support ticket.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PRICING ============ -->
+  <section class="topic" id="pricing">
+    <div class="wrap">
+      <div class="topic-head">
+        <div class="topic-eyebrow">10 · Cost</div>
+        <h2>What actually drives the bill</h2>
+        <p class="topic-dek">Storage pricing is multi-dimensional — easy to optimize one axis and accidentally blow up another.</p>
+      </div>
+
+      <div class="grid-4">
+        <div class="card">
+          <div class="c-icon">$</div>
+          <h3>Capacity</h3>
+          <p>Per-GB/month, varies by tier and redundancy level. The most visible but often not the largest cost.</p>
+        </div>
+        <div class="card">
+          <div class="c-icon">↑</div>
+          <h3>Operations</h3>
+          <p>Per-10,000-transaction pricing on reads, writes, and list operations — chatty applications can rack this up fast.</p>
+        </div>
+        <div class="card">
+          <div class="c-icon">↓</div>
+          <h3>Egress</h3>
+          <p>Outbound data transfer is billed; inbound is free. Geo-replication and CDN origin pulls both count as egress.</p>
+        </div>
+        <div class="card">
+          <div class="c-icon">⏱</div>
+          <h3>Early deletion</h3>
+          <p>Penalty for deleting/moving data out of Cool, Cold, or Archive before the minimum retention period.</p>
+        </div>
+      </div>
+
+      <div class="callout warn">
+        <span class="ic">Real-world trap →</span>
+        <span>Archive tier is cheap to store but expensive in two hidden ways: <strong>rehydration time</strong> (hours) and a <strong>per-GB retrieval fee</strong> on top of the rehydration. A workload that "just checks Archive sometimes" can cost more in retrieval fees than it would have cost to leave the data in Cool the whole time. Model actual access patterns before committing to a tier.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CHEATSHEET ============ -->
+  <section class="topic" id="cheatsheet">
+    <div class="wrap">
+      <div class="topic-head">
+        <div class="topic-eyebrow">11 · Reference</div>
+        <h2>60-second cheatsheet</h2>
+        <p class="topic-dek">The decisions that come up in nearly every design review — pinned here so you don't have to scroll.</p>
+      </div>
+
+      <div class="cheatsheet">
+        <div class="cheat-grid">
+          <div class="cheat-col">
+            <h5>Which service?</h5>
+            <div class="item"><span>Unstructured objects</span><b>Blob</b></div>
+            <div class="item"><span>Network file share</span><b>Files</b></div>
+            <div class="item"><span>Async messaging</span><b>Queue</b></div>
+            <div class="item"><span>NoSQL lookup</span><b>Table / Cosmos</b></div>
+            <div class="item"><span>VM disks</span><b>Page blob</b></div>
+          </div>
+          <div class="cheat-col">
+            <h5>Which redundancy?</h5>
+            <div class="item"><span>Lowest cost, dev/test</span><b>LRS</b></div>
+            <div class="item"><span>Zone failure protection</span><b>ZRS</b></div>
+            <div class="item"><span>Regional DR</span><b>GRS</b></div>
+            <div class="item"><span>Zone + region DR</span><b>GZRS</b></div>
+            <div class="item"><span>Read secondary always</span><b>RA- prefix</b></div>
+          </div>
+          <div class="cheat-col">
+            <h5>Which tier?</h5>
+            <div class="item"><span>Accessed daily</span><b>Hot</b></div>
+            <div class="item"><span>Accessed monthly</span><b>Cool</b></div>
+            <div class="item"><span>Accessed rarely</span><b>Cold</b></div>
+            <div class="item"><span>Compliance archive</span><b>Archive</b></div>
+            <div class="item"><span>Don't know yet</span><b>Lifecycle policy</b></div>
+          </div>
+          <div class="cheat-col">
+            <h5>Which auth?</h5>
+            <div class="item"><span>App / user identity</span><b>Entra ID RBAC</b></div>
+            <div class="item"><span>Temporary delegated</span><b>User-delegation SAS</b></div>
+            <div class="item"><span>Legacy / scripts</span><b>Account key</b> (avoid)</div>
+            <div class="item"><span>Public read-only</span><b>Anonymous + container ACL</b></div>
+            <div class="item"><span>Zero public exposure</span><b>Private Endpoint</b></div>
+          </div>
+          <div class="cheat-col">
+            <h5>Which network path?</h5>
+            <div class="item"><span>Quick / public</span><b>Public endpoint</b></div>
+            <div class="item"><span>VNet-restricted, simple</span><b>Service Endpoint</b></div>
+            <div class="item"><span>Production / compliance</span><b>Private Endpoint</b></div>
+          </div>
+          <div class="cheat-col">
+            <h5>Protect against...</h5>
+            <div class="item"><span>Accidental deletion</span><b>Soft delete</b></div>
+            <div class="item"><span>Accidental overwrite</span><b>Versioning</b></div>
+            <div class="item"><span>Ransomware / tampering</span><b>Immutability policy</b></div>
+            <div class="item"><span>Account/region outage</span><b>GRS / GZRS</b></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout tip">
+        <span class="ic">For the design review →</span>
+        <span>Every storage account decision is really four separate decisions made together: which <strong>service</strong>, which <strong>redundancy</strong>, which <strong>tier</strong>, and which <strong>network/auth posture</strong>. State all four explicitly in any architecture doc — "we're using Blob, GZRS, Hot tier with lifecycle to Cool at 30 days, behind a Private Endpoint with Entra ID auth" is a complete, defensible answer.</span>
+      </div>
+    </div>
+  </section>
+
+
+
+  <footer>
+    <div class="wrap">
+      <p>Azure Storage — End to End Architecture Reference · single-file HTML · no external runtime dependencies</p>
+    </div>
+  </footer>
+
+</main>
+
+<div class="totop" id="toTop">↑</div>
+
+<script>
+  const navLinks = document.getElementById('navLinks');
+  const menuToggle = document.getElementById('menuToggle');
+  menuToggle.addEventListener('click', () => navLinks.classList.toggle('open'));
+  document.querySelectorAll('.navlinks a').forEach(a=>{
+    a.addEventListener('click', ()=> navLinks.classList.remove('open'));
+  });
+
+  const links = document.querySelectorAll('.navlinks a');
+  const sections = Array.from(links).map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+
+  function onScroll(){
+    let activeIdx = 0;
+    sections.forEach((sec, i) => {
+      if (sec.getBoundingClientRect().top - 140 <= 0) activeIdx = i;
+    });
+    links.forEach(a => a.classList.remove('active'));
+    if (links[activeIdx]) links[activeIdx].classList.add('active');
+
+    const toTop = document.getElementById('toTop');
+    if (window.scrollY > 700) toTop.classList.add('show');
+    else toTop.classList.remove('show');
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+
+  document.getElementById('toTop').addEventListener('click', () => {
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+</script>
+
+</body>
+</html>
