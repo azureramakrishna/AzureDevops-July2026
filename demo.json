@@ -1,9 +1,13 @@
 {
     "TrainingModule": "AzureDevops with AI",
     "TrainerName": "Ramakrishna",
-    "ContactNumber": 9513184144,
+    "ContactNumbers": [9513184144, 12345678, 8086435],
     "IsMCT": true,
-    "TopicsCovered": ["Azure DevOps", "AI Integration", "CI/CD Pipelines", "Infrastructure as Code"],
+    "TopicsCovered": ["Azure DevOps", 
+                      "AI Integration", 
+                      "CI/CD Pipelines", 
+                      "Infrastructure as Code"],
+
     "DurationInDays": 60,
     "address": {
         "Street": "123 Main St",

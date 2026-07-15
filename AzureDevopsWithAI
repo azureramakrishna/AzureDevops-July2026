@@ -488,3 +488,20 @@ Autoscaling - VMSS (Virtual Machine scale set)
 
 ARMTemplates (JSON):
 ===================
+
+Schema
+ContentVersion
+Parameters
+Variables
+Resources
+Outputs
+
+Azure Bicep:
+===========
+
+Installation: https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/install
+
+VSCode extension for Bicep: Azure Bicep
+Az Bicep install: https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/install
+Bicep CLI: https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/install#windows
+
