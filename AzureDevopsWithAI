@@ -505,3 +505,29 @@ VSCode extension for Bicep: Azure Bicep
 Az Bicep install: https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/install
 Bicep CLI: https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/install#windows
 
+
+Terraform: IAC
+=========
+
+ARMTemplates                            Bicep                               Terraform
+------------                            -----                               ----------
+1. IAC                                  1. IAC                              1. IAC
+2. Specific Azure                       2. Specific Azure                   2. OpenSource (Azure, AWS, GCP, Onprem, etc)
+3. JSON                                 3. Domain specific language         3. HCL (Hashicorp configuration language)
+4. template.json                        4. main.bicep                       4. main.tf
+    parameters.json                         main.bicepparam                     variables.tf
+5. Schema                               5. param                            5. provider
+    contentvesion                           var                                 resource   
+    parameters                              resource                            outputs
+    variables                               output
+    resources
+    outputs
+6. New-AzResourceGroupDeployment '                                          6. Terraform init
+   -ResourceGroupName ''                                                        Terraform fmt
+   -TemplateFile ''                                                             Terraform valiate
+   -TempalteParametesFile ''                                                    Terraform plan
+   -Verbose                                                                     Terraform apply
+                                                                                Terraform destroy
+
+
+Terraform install: https://developer.hashicorp.com/terraform/install#windows
