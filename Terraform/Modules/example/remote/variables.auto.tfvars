@@ -1,0 +1,19 @@
+resource_group_name = "remote-rg"
+location            = "eastus"
+tags = {
+  environment = "remote"
+  owner       = "azureramakrishna@gmail.com"
+  project     = "terraform-modules"
+}
+storage_account_name          = "remotesa240726"
+virtual_network_name          = "remote-vnet"
+virtual_network_address_space = ["192.168.3.0/24"]
+subnet_name                   = "remote-subnet"
+subnet_address_prefix         = ["192.168.3.0/24"]
+network_security_group_name   = "remote-nsg"
+public_ip_name                = "remote-pip"
+network_interface_name        = "remote-nic"
+virtual_machine_name          = "remote-vm"
+virtual_machine_size          = "Standard_DS1_v2"
+admin_username                = "azureuser"
+admin_password                = "Azuredevops@12345"
