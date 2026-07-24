@@ -1,0 +1,19 @@
+resource_group_name = "test-rg"
+location            = "eastus"
+tags = {
+  environment = "test"
+  owner       = "azureramakrishna@gmail.com"
+  project     = "terraform-modules"
+}
+storage_account_name          = "testsa240726"
+virtual_network_name          = "test-vnet"
+virtual_network_address_space = ["192.168.1.0/24"]
+subnet_name                   = "test-subnet"
+subnet_address_prefix         = ["192.168.1.0/24"]
+network_security_group_name   = "test-nsg"
+public_ip_name                = "test-pip"
+network_interface_name        = "test-nic"
+virtual_machine_name          = "test-vm"
+virtual_machine_size          = "Standard_DS1_v2"
+admin_username                = "azureuser"
+admin_password                = "Azuredevops@12345"

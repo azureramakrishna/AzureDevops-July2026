@@ -1,0 +1,19 @@
+resource_group_name = "prod-rg"
+location            = "eastus"
+tags = {
+  environment = "prod"
+  owner       = "azureramakrishna@gmail.com"
+  project     = "terraform-modules"
+}
+storage_account_name          = "prodsa240726"
+virtual_network_name          = "prod-vnet"
+virtual_network_address_space = ["192.168.2.0/24"]
+subnet_name                   = "prod-subnet"
+subnet_address_prefix         = ["192.168.2.0/24"]
+network_security_group_name   = "prod-nsg"
+public_ip_name                = "prod-pip"
+network_interface_name        = "prod-nic"
+virtual_machine_name          = "prod-vm"
+virtual_machine_size          = "Standard_DS1_v2"
+admin_username                = "azureuser"
+admin_password                = "Azuredevops@12345"

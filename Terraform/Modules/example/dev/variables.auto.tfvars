@@ -1,0 +1,19 @@
+resource_group_name = "dev-rg"
+location            = "eastus"
+tags = {
+  environment = "development"
+  owner       = "azureramakrishna@gmail.com"
+  project     = "terraform-modules"
+}
+storage_account_name          = "devsa240726"
+virtual_network_name          = "dev-vnet"
+virtual_network_address_space = ["192.168.0.0/24"]
+subnet_name                   = "dev-subnet"
+subnet_address_prefix         = ["192.168.0.0/24"]
+network_security_group_name   = "dev-nsg"
+public_ip_name                = "dev-pip"
+network_interface_name        = "dev-nic"
+virtual_machine_name          = "dev-vm"
+virtual_machine_size          = "Standard_DS1_v2"
+admin_username                = "azureuser"
+admin_password                = "Azuredevops@12345"
